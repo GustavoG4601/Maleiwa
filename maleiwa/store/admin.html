@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <title>Admin | Maleiwa</title>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: { extend: { colors: { "primary": "#d2781e", "background-light": "#f8f7f6", "background-dark": "#211911" }, fontFamily: { "display": ["Manrope", "sans-serif"] } } }
+    }
+  </script>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+  <div
+    class="relative min-h-screen w-full flex flex-col items-center bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(#3d3228_1px,transparent_1px)]">
+
+    <!-- Header (same style) -->
+    <header class="w-full max-w-[1000px] px-6 py-6 border-b border-primary/10">
+      <div class="flex items-center justify-between">
+        <a href="/store/index.html"
+          class="flex items-center gap-2 text-slate-900 dark:text-slate-100 hover:opacity-80 transition-opacity">
+          <img src="LOGO.webp" alt="Maleiwa" class="h-10">
+        </a>
+        <div class="flex items-center gap-4">
+          <button onclick="location.href='/store/index.html'"
+            class="px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors">Sitio</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="w-full max-w-[1000px] px-6 py-8">
+      <h1 class="text-3xl font-bold mb-4">Panel de Administración</h1>
+
+      <div id="loginBox"
+        class="bg-background-light dark:bg-background-dark rounded-xl p-6 border border-primary/10 shadow-sm">
+        <p class="mb-4 text-slate-600">Accede con las credenciales del administrador.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label class="block">Usuario <input id="username" class="w-full p-3 border rounded"
+              placeholder="Usuario"></label>
+          <label class="block">Contraseña <input id="password" type="password" class="w-full p-3 border rounded"
+              placeholder="Contraseña"></label>
+        </div>
+        <div class="mt-4 flex gap-2">
+          <button id="loginBtn" class="px-4 py-3 bg-primary text-white rounded-lg font-semibold">Iniciar sesión</button>
+          <a href="/store/index.html" class="px-4 py-3 border rounded-lg">Volver</a>
+        </div>
+      </div>
+
+      <div id="adminArea"
+        class="hidden mt-6 bg-background-light dark:bg-background-dark rounded-xl p-6 border border-primary/10 shadow-sm">
+        <!-- Tabs -->
+        <div class="flex gap-4 mb-6 border-b border-primary/10">
+          <button id="tabAdd" class="px-4 py-3 border-b-2 border-primary font-semibold cursor-pointer"
+            onclick="showTab('add')">Agregar Producto</button>
+          <button id="tabList"
+            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer"
+            onclick="showTab('list')">Listar Productos</button>
+          <button id="tabColls"
+            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer"
+            onclick="showTab('colls')">Colecciones</button>
+        </div>
+
+        <!-- Tab: Agregar/Editar Producto -->
+        <div id="tabAddContent">
+          <h2 class="text-xl font-semibold mb-4" id="formTitle">Agregar Producto</h2>
+          <form id="productForm" class="space-y-3">
+            <input type="hidden" id="editProductId" value="">
+            <input type="hidden" id="editCollectionId" value="">
+            <label class="block">Colección
+              <select name="collection" id="collection" class="w-full p-3 border rounded">
+                <!-- Dynamically populated -->
+              </select>
+            </label>
+            <label class="block">Nombre <input name="name" id="name" class="w-full p-3 border rounded"></label>
+            <label class="block">Precio <input name="price" id="price" class="w-full p-3 border rounded"
+                placeholder="$85"></label>
+            <label class="block">Precio anterior (opcional) <input name="oldPrice" id="oldPrice"
+                class="w-full p-3 border rounded" placeholder="$0"></label>
+            <label class="block">Color <input name="color" id="color" class="w-full p-3 border rounded"
+                placeholder="Beige natural"></label>
+            <label class="block">Material <input name="material" id="material" class="w-full p-3 border rounded"
+                placeholder="100% Lino"></label>
+            <label class="block">Descripción <textarea name="description" id="description"
+                class="w-full p-3 border rounded" rows="4" placeholder="Descripción del producto..."></textarea></label>
+            <label class="block">Especificaciones (una por línea) <textarea name="specs" id="specs"
+                class="w-full p-3 border rounded" rows="3"
+                placeholder="✓ 100% Algodón Orgánico\n✓ Producción Sostenible"></textarea></label>
+            <label class="block">Tallas (coma separadas) <input name="sizes" id="sizes"
+                class="w-full p-3 border rounded" placeholder="XS,S,M,L,XL"></label>
+            <label class="block">Colores disponibles (coma separadas) <input name="colors" id="colors"
+                class="w-full p-3 border rounded" placeholder="Beige,Crema,Gris"></label>
+            <label class="block">Imagen <input type="file" name="image" id="image" class="block"></label>
+            <div class="flex gap-2">
+              <button class="px-4 py-3 bg-primary text-white rounded-lg" id="saveBtn" type="submit">Guardar
+                Producto</button>
+              <button class="px-4 py-3 border rounded-lg hidden" id="cancelEditBtn" type="button"
+                onclick="cancelEdit()">Cancelar Edición</button>
+              <button class="px-4 py-3 border rounded-lg" id="logoutBtn" type="button">Salir</button>
+            </div>
+          </form>
+          <div id="result" class="mt-4 text-slate-600"></div>
+        </div>
+
+        <!-- Tab: Listar Productos -->
+        <div id="tabListContent" class="hidden">
+          <h2 class="text-xl font-semibold mb-4">Productos</h2>
+          <div id="productsList" class="space-y-4">
+            <p class="text-slate-600">Cargando productos...</p>
+          </div>
+        </div>
+
+        <!-- Tab: Gestionar Colecciones -->
+        <div id="tabCollsContent" class="hidden">
+          <h2 class="text-xl font-semibold mb-4">Gestionar Colecciones</h2>
+
+          <div class="mb-8 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-primary/10">
+            <h3 class="font-semibold mb-3">Crear Nueva Colección</h3>
+            <div class="space-y-3">
+              <input id="newCollName" class="w-full p-3 border rounded"
+                placeholder="ID de la colección (ej: verano-2026)">
+              <input id="newCollTitle" class="w-full p-3 border rounded"
+                placeholder="Nombre para mostrar (ej: Colección Verano)">
+              <textarea id="newCollDesc" class="w-full p-3 border rounded" rows="2"
+                placeholder="Descripción breve..."></textarea>
+              <button onclick="addCollection()"
+                class="px-4 py-3 bg-primary text-white rounded-lg font-semibold w-full">Crear Colección</button>
+            </div>
+          </div>
+
+          <h3 class="font-semibold mb-3">Colecciones Existentes</h3>
+          <div id="collectionsList" class="space-y-3">
+            <p class="text-slate-600">Cargando colecciones...</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom nav like the rest of the site -->
+    <nav class="fixed bottom-0 left-0 right-0 z-50">
+      <div
+        class="w-full max-w-[1000px] mx-auto px-6 py-3 bg-background-light dark:bg-background-dark border-t border-primary/10 flex items-center justify-between">
+        <a class="flex flex-col items-center gap-1 text-primary" href="/store/index.html">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 11.5L12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-8.5z" />
+          </svg>
+          <span class="text-[9px] font-bold tracking-tighter uppercase">Inicio</span>
+        </a>
+        <a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-600"
+          href="/store/collection.html?id=esencia">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 6h16v2H4zM4 11h16v2H4zM4 16h16v2H4z" />
+          </svg>
+          <span class="text-[9px] font-bold tracking-tighter uppercase">Explorar</span>
+        </a>
+        <div class="relative -mt-10">
+          <button aria-label="Acerca de Maleiwa"
+            class="bg-primary p-3 rounded-full shadow-lg shadow-primary/30 border-4 border-background-light dark:border-background-dark flex items-center justify-center"
+            onclick="location.href='/store/admin.html'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+              <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 11h-2v2h-2v-2H9v-2h2V9h2v2h2v2h-2z" />
+            </svg>
+          </button>
+        </div>
+        <a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-600" href="#"
+          onclick="openFavorites()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 21s-7.5-4.9-9.1-7.1C1.6 11.5 3.1 7.5 6.5 6.1 8.2 5.4 10 6 11 7.2c1-1.2 2.8-1.8 4.5-1.1 3.4 1.4 4.9 5.4 3.6 7.8C19.5 16.1 12 21 12 21z" />
+          </svg>
+          <span class="text-[9px] font-bold tracking-tighter uppercase">Favoritos</span>
+        </a>
+        <a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-600" href="/store/admin.html">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5z" />
+          </svg>
+          <span class="text-[9px] font-bold tracking-tighter uppercase">Perfil</span>
+        </a>
+      </div>
+    </nav>
+
+  </div>
+
+  <script>
+    async function postJSON(url, body) {
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), credentials: 'include' });
+      return res.json();
+    }
+
+    // Tab management
+    function showTab(tabName) {
+      // Save to hash
+      window.location.hash = tabName;
+
+      document.getElementById('tabAddContent').classList.toggle('hidden', tabName !== 'add');
+      document.getElementById('tabListContent').classList.toggle('hidden', tabName !== 'list');
+      document.getElementById('tabCollsContent').classList.toggle('hidden', tabName !== 'colls');
+
+      document.getElementById('tabAdd').classList.toggle('border-primary', tabName === 'add');
+      document.getElementById('tabAdd').classList.toggle('border-transparent', tabName !== 'add');
+      document.getElementById('tabAdd').classList.toggle('text-slate-600', tabName !== 'add');
+
+      document.getElementById('tabList').classList.toggle('border-primary', tabName === 'list');
+      document.getElementById('tabList').classList.toggle('border-transparent', tabName !== 'list');
+      document.getElementById('tabList').classList.toggle('text-slate-600', tabName !== 'list');
+
+      document.getElementById('tabColls').classList.toggle('border-primary', tabName === 'colls');
+      document.getElementById('tabColls').classList.toggle('border-transparent', tabName !== 'colls');
+      document.getElementById('tabColls').classList.toggle('text-slate-600', tabName !== 'colls');
+
+      if (tabName === 'list') loadProducts();
+      if (tabName === 'colls') loadCollections();
+      if (tabName === 'add') populateCollectionDropdown();
+    }
+
+    async function loadCollections() {
+      try {
+        const res = await fetch('/api/products');
+        const data = await res.json();
+        displayCollections(data);
+      } catch (e) {
+        document.getElementById('collectionsList').innerHTML = '<p class="text-red-500">Error al cargar colecciones.</p>';
+      }
+    }
+
+    function displayCollections(data) {
+      const container = document.getElementById('collectionsList');
+      if (!data || Object.keys(data).length === 0) {
+        container.innerHTML = '<p class="text-slate-600">No hay colecciones.</p>';
+        return;
+      }
+
+      let html = '';
+      for (const id in data) {
+        const c = data[id];
+        html += `
+          <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-primary/10">
+            <div>
+              <p class="font-semibold">${c.title} <span class="text-xs text-slate-500 font-normal">(${id})</span></p>
+              <p class="text-xs text-slate-500">${c.products?.length || 0} productos</p>
+            </div>
+            <button onclick="deleteCollection('${id}')" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-xs font-semibold">
+              Eliminar
+            </button>
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    async function addCollection() {
+      const name = document.getElementById('newCollName').value.trim();
+      const title = document.getElementById('newCollTitle').value.trim();
+      const desc = document.getElementById('newCollDesc').value.trim();
+
+      if (!name) return alert('El ID es obligatorio');
+
+      const r = await postJSON('/api/collections', { name, title, desc });
+      if (r.ok) {
+        alert('Colección creada');
+        document.getElementById('newCollName').value = '';
+        document.getElementById('newCollTitle').value = '';
+        document.getElementById('newCollDesc').value = '';
+        loadCollections();
+      } else {
+        alert(r.error || 'Error al crear colección');
+      }
+    }
+
+    async function deleteCollection(id) {
+      if (!confirm(`¿Estás seguro de que quieres eliminar la colección "${id}" y TODOS sus productos?`)) return;
+      try {
+        const res = await fetch(`/api/collections/${id}`, { method: 'DELETE', credentials: 'include' });
+        const data = await res.json();
+        if (data.ok) {
+          alert('Colección eliminada');
+          loadCollections();
+          populateCollectionDropdown(); // refresh dropdown too
+        } else {
+          alert(data.error || 'Error al eliminar');
+        }
+      } catch (e) {
+        alert('Error de conexión al eliminar');
+      }
+    }
+
+    async function populateCollectionDropdown() {
+      const sel = document.getElementById('collection');
+      try {
+        const res = await fetch('/api/products');
+        const data = await res.json();
+        sel.innerHTML = Object.keys(data).map(id => `<option value="${id}">${data[id].title}</option>`).join('');
+      } catch (e) {
+        sel.innerHTML = '<option value="">Error al cargar</option>';
+      }
+    }
+
+    // Populate dropdown on first load if default tab is 'add'
+    populateCollectionDropdown();
+
+    async function loadProducts() {
+      try {
+        const res = await fetch('/api/products');
+        const data = await res.json();
+        displayProducts(data);
+      } catch (e) {
+        document.getElementById('productsList').innerHTML = '<p class="text-red-500">Error al cargar productos.</p>';
+      }
+    }
+
+    function displayProducts(data) {
+      if (!data || Object.keys(data).length === 0) {
+        document.getElementById('productsList').innerHTML = '<p class="text-slate-600">No hay productos.</p>';
+        return;
+      }
+
+      let html = '';
+      for (const collectionName in data) {
+        const collection = data[collectionName];
+        if (!collection.products || collection.products.length === 0) continue;
+
+        html += `<div class="mb-6"><h3 class="font-semibold text-lg mb-3 text-primary">${collection.title}</h3><div class="space-y-2">`;
+
+        collection.products.forEach(product => {
+          html += `
+          <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-primary/10">
+            <div class="flex-1">
+              <p class="font-semibold">${product.name}</p>
+              <p class="text-sm text-slate-600 dark:text-slate-400">${product.color || ''} • ${product.price || '$0'}</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick='editProduct("${collectionName}", ${JSON.stringify(product).replace(/'/g, "&#39;")})' class="px-3 py-2 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors text-sm font-semibold">
+                Editar
+              </button>
+              <button onclick="deleteProduct('${collectionName}', ${product.id})" class="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm font-semibold">
+                Eliminar
+              </button>
+            </div>
+          </div>
+        `;
+        });
+
+        html += '</div></div>';
+      }
+
+      document.getElementById('productsList').innerHTML = html;
+    }
+
+    async function deleteProduct(collection, productId) {
+      if (!confirm('¿Estás seguro de que quieres eliminar este producto?')) return;
+
+      try {
+        const res = await fetch(`/api/products/${collection}/${productId}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+          alert('Producto eliminado');
+          loadProducts();
+        } else {
+          alert('Error al eliminar el producto');
+        }
+      } catch (e) {
+        alert('Error al eliminar el producto');
+      }
+    }
+
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const r = await postJSON('/api/login', { username, password });
+      if (r.ok) {
+        showPanel();
+      } else alert('Credenciales inválidas');
+    });
+
+    function showPanel() {
+      document.getElementById('loginBox').classList.add('hidden');
+      document.getElementById('adminArea').classList.remove('hidden');
+
+      // Restore tab from hash or default to 'add'
+      const hash = window.location.hash.replace('#', '');
+      const validTabs = ['add', 'list', 'colls'];
+      showTab(validTabs.includes(hash) ? hash : 'add');
+    }
+
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/check-auth', { credentials: 'include' });
+        if (res.ok) {
+          showPanel();
+        }
+      } catch (e) { }
+    }
+
+    // Initialize
+    checkAuth();
+
+    document.getElementById('productForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const editId = document.getElementById('editProductId').value;
+      const editColl = document.getElementById('editCollectionId').value;
+
+      const fd = new FormData();
+      fd.append('collection', document.getElementById('collection').value);
+      fd.append('name', document.getElementById('name').value);
+      fd.append('price', document.getElementById('price').value);
+      fd.append('oldPrice', document.getElementById('oldPrice').value || '');
+      fd.append('color', document.getElementById('color').value);
+      fd.append('material', document.getElementById('material').value);
+      fd.append('description', document.getElementById('description').value || '');
+      fd.append('specs', document.getElementById('specs').value || '');
+      fd.append('sizes', document.getElementById('sizes').value || '');
+      fd.append('colors', document.getElementById('colors').value || '');
+
+      const file = document.getElementById('image').files[0];
+      if (file) fd.append('image', file);
+
+      let url = '/api/products';
+      let method = 'POST';
+
+      if (editId) {
+        url = `/api/products/${editColl}/${editId}`;
+        method = 'PUT';
+      }
+
+      const res = await fetch(url, { method, body: fd, credentials: 'include' });
+      const data = await res.json();
+      if (data.ok) {
+        const msg = editId ? 'Producto actualizado.' : 'Producto agregado.';
+        alert(msg);
+        document.getElementById('result').innerText = msg;
+
+        if (editId) {
+          showTab('list'); // Return to list after editing
+        } else {
+          cancelEdit();
+          // For new products, we can redirect or just clear
+          location.href = `/store/collection.html?id=${encodeURIComponent(document.getElementById('collection').value)}`;
+        }
+      }
+      else document.getElementById('result').innerText = 'Error al procesar producto.';
+    });
+
+    function editProduct(collectionId, product) {
+      showTab('add');
+      document.getElementById('formTitle').innerText = 'Editar Producto';
+      document.getElementById('saveBtn').innerText = 'Actualizar Producto';
+      document.getElementById('cancelEditBtn').classList.remove('hidden');
+
+      document.getElementById('editProductId').value = product.id;
+      document.getElementById('editCollectionId').value = collectionId;
+
+      document.getElementById('collection').value = collectionId;
+      document.getElementById('name').value = product.name;
+      document.getElementById('price').value = product.price;
+      document.getElementById('oldPrice').value = product.oldPrice || '';
+      document.getElementById('color').value = product.color || '';
+      document.getElementById('material').value = product.material || '';
+      document.getElementById('description').value = product.description || '';
+      document.getElementById('specs').value = Array.isArray(product.specs) ? product.specs.join('\n') : (product.specs || '');
+      document.getElementById('sizes').value = Array.isArray(product.sizes) ? product.sizes.join(',') : (product.sizes || '');
+      document.getElementById('colors').value = Array.isArray(product.colors) ? product.colors.join(',') : (product.colors || '');
+    }
+
+    function cancelEdit() {
+      document.getElementById('productForm').reset();
+      document.getElementById('editProductId').value = '';
+      document.getElementById('editCollectionId').value = '';
+      document.getElementById('formTitle').innerText = 'Agregar Producto';
+      document.getElementById('saveBtn').innerText = 'Guardar Producto';
+      document.getElementById('cancelEditBtn').classList.add('hidden');
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      try {
+        await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+      } catch (e) { }
+      location.href = '/';
+    });
+
+    // Favorites Modal logic for Admin
+    function getFavs() { try { return JSON.parse(localStorage.getItem('maleiwa_favs') || '[]'); } catch (e) { return []; } }
+    function openFavorites() { showFavModal(); }
+    function showFavModal() {
+      const modal = document.getElementById('favModal');
+      const items = getFavs();
+      const container = document.getElementById('fav-items');
+      if (items.length === 0) {
+        container.innerHTML = '<p class="text-slate-500 text-center py-4">No tienes favoritos aún.</p>';
+      } else {
+        container.innerHTML = items.map(p => `
+        <div class="flex items-center gap-3 py-3 border-b border-primary/10 cursor-pointer" onclick="location.href='/store/product.html?collection=${p.collection}&product=${p.id}'">
+          <img src="${p.image}" class="w-12 h-16 object-cover rounded-md bg-slate-200">
+          <div class="flex-1 text-left">
+            <p class="font-semibold text-sm">${p.name}</p>
+            <p class="text-primary text-xs font-bold">${p.price}</p>
+          </div>
+        </div>
+      `).join('');
+      }
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      document.getElementById('favModalContent').classList.remove('scale-95');
+    }
+    function closeFavModal() {
+      const modal = document.getElementById('favModal');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      document.getElementById('favModalContent').classList.add('scale-95');
+    }
+    const favModalHTML = `
+  <div id="favModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="favModalContent" class="bg-background-light dark:bg-background-dark rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl transform scale-95 transition-transform duration-300 text-slate-900 dark:text-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold">Mis Favoritos</h3>
+        <button onclick="closeFavModal()" class="text-slate-500 font-bold p-1">✕</button>
+      </div>
+      <div id="fav-items" class="max-h-[60vh] overflow-y-auto pr-2"></div>
+      <button onclick="closeFavModal()" class="w-full mt-4 py-3 border border-primary text-primary rounded-lg font-bold">Cerrar</button>
+    </div>
+  </div>
+  `;
+    document.body.insertAdjacentHTML('beforeend', favModalHTML);
+    document.getElementById('favModal').addEventListener('click', (e) => { if (e.target.id === 'favModal') closeFavModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeFavModal(); });
+  </script>
+</body>
+
+</html>

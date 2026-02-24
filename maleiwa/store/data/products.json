@@ -1,0 +1,23 @@
+{
+  "2026": {
+    "title": "Esencia Caribe",
+    "desc": "",
+    "products": [
+      {
+        "id": 1,
+        "name": "Gustavo ",
+        "price": "200",
+        "oldPrice": "44",
+        "image": "/store/uploads/1771958040032-yr1xiq.webp",
+        "color": "",
+        "material": "Potacio",
+        "description": "",
+        "specs": [
+          "qqq"
+        ],
+        "sizes": [],
+        "colors": []
+      }
+    ]
+  }
+}

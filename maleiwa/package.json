@@ -1,0 +1,19 @@
+{
+  "name": "maleiwa-site",
+  "version": "1.0.0",
+  "description": "Minimal server to manage Maleiwa products JSON",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "multer": "^1.4.4"
+  }
+}
