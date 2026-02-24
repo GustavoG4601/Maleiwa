@@ -2,6 +2,7 @@ node_modules
 .DS_Store
 npm-debug.log
 .env
+store/data/products.json
 # Opcional: Descomenta si quieres que tus productos locales no se suban al servidor
 # store/data/products.json
 # store/uploads/*

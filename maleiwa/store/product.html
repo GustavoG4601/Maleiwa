@@ -192,9 +192,7 @@
       <div class="relative -mt-10">
         <button id="aboutButton" onclick="showAboutModal()" aria-label="Acerca de Maleiwa"
           class="bg-primary p-3 rounded-full shadow-lg shadow-primary/30 border-4 border-background-light dark:border-background-dark flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-          </svg>
+          <span class="material-symbols-outlined text-white text-2xl">info</span>
         </button>
       </div>
       <a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-600" href="#" onclick="openFavorites()">
@@ -226,7 +224,7 @@
             <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
           </svg>
         </div>
-        <h2 class="text-2xl font-bold mb-2 text-slate-900 dark:text-slate-100">¿Qué es Maleiwa?</h2>
+        <h2 class="text-2xl font-bold mb-2 text-slate-900 dark:text-slate-100">¿Quiénes somos?</h2>
         <p class="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
           Maleiwa es una marca de moda consciente y minimalista inspirada en la naturaleza. Nuestras piezas buscan
           conectar con
@@ -237,6 +235,26 @@
       </div>
     </div>
   </div>
+
+  <!-- Toast Notification -->
+  <div id="toast"
+    class="fixed top-8 left-1/2 -translate-x-1/2 z-[100] bg-slate-900 text-white px-6 py-3 rounded-full shadow-2xl transform -translate-y-20 opacity-0 transition-all duration-500 pointer-events-none flex items-center justify-center">
+    <span id="toast-msg" class="text-sm font-semibold tracking-wide"></span>
+  </div>
+
+  <script>
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      toastMsg.textContent = msg;
+      toast.classList.remove('-translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.add('-translate-y-20', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3000);
+    }
+  </script>
 
   <script>
     function showAboutModal() { const modal = document.getElementById('aboutModal'); const content = document.getElementById('aboutModalContent'); modal.classList.remove('opacity-0', 'pointer-events-none'); content.classList.remove('scale-95'); content.classList.add('scale-100'); }
@@ -399,8 +417,21 @@
 
       const productName = document.getElementById('product-name').textContent;
       const priceText = document.getElementById('product-price').textContent || '$0';
-      const priceNum = parseFloat(priceText.replace(/[^0-9.-]+/g, '')) || 0;
-      const cart = JSON.parse(localStorage.getItem('maleiwa_cart') || '[]');
+
+      const parsePrice = (val) => {
+        if (typeof val === 'number') return val;
+        let s = String(val).replace(/[^0-9,.]/g, '');
+        if (s.includes(',') && s.includes('.')) return parseFloat(s.replace(/\./g, '').replace(',', '.'));
+        if (s.includes(',')) return parseFloat(s.replace(',', '.'));
+        if (s.includes('.')) {
+          const parts = s.split('.');
+          if (parts.length > 2 || parts[parts.length - 1].length === 3) return parseFloat(s.replace(/\./g, ''));
+        }
+        return parseFloat(s);
+      };
+
+      const priceNum = parsePrice(priceText);
+      const cart = getCart();
 
       const cartItem = {
         id: Date.now(),
@@ -412,11 +443,8 @@
       };
 
       cart.push(cartItem);
-      localStorage.setItem('maleiwa_cart', JSON.stringify(cart));
-      const total = cart.reduce((s, i) => s + (i.qty || 1), 0);
-      localStorage.setItem('cart-count', String(total));
-      document.getElementById('cart-count').textContent = total;
-      alert(`${productName} (${selectedSize}, ${selectedColor}) añadido al carrito (Total: ${total} artículos)`);
+      saveCart(cart);
+      showToast(`${productName} añadido al carrito`);
 
       // Reset selections
       selectedSize = null;
@@ -444,8 +472,8 @@
       const favs = getFavs();
       const idx = favs.findIndex(f => f.name === name && f.collection === collection);
       const img = document.getElementById('product-image') ? document.getElementById('product-image').src : '';
-      if (idx === -1) { favs.push({ id: productId, name: name, price: priceNum, collection, image: img }); saveFavs(favs); alert(name + ' añadido a favoritos'); }
-      else { favs.splice(idx, 1); saveFavs(favs); alert(name + ' eliminado de favoritos'); }
+      if (idx === -1) { favs.push({ id: productId, name: name, price: priceNum, collection, image: img }); saveFavs(favs); showToast('Añadido a favoritos'); }
+      else { favs.splice(idx, 1); saveFavs(favs); showToast('Eliminado de favoritos'); }
       updateFavButton();
     }
 
@@ -456,6 +484,11 @@
       if (!btn || !icon) return;
       if (isFavByName(name)) { btn.classList.add('bg-primary/10'); icon.classList.add('text-primary'); }
       else { btn.classList.remove('bg-primary/10'); icon.classList.remove('text-primary'); }
+    }
+
+    function formatPrice(price) {
+      if (isNaN(price)) return '$0';
+      return '$' + Math.floor(price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
 
     // displayProduct() is now called by loadAndDisplay() after server data is fetched
@@ -472,7 +505,7 @@
       if (!container) return;
       if (cart.length === 0) {
         container.innerHTML = '<p class="text-slate-600">Tu carrito está vacío.</p>';
-        document.getElementById('cart-total').textContent = '$0.00';
+        document.getElementById('cart-total').textContent = '$0';
         return;
       }
       container.innerHTML = cart.map(item => `
@@ -480,7 +513,7 @@
       <div>
         <div class="font-semibold text-sm">${item.name}</div>
         <div class="text-[10px] text-slate-500 uppercase font-bold">${item.size} • ${item.color}</div>
-        <div class="text-sm text-primary font-bold">$${(item.price * (item.qty || 1)).toFixed(2)}</div>
+        <div class="text-sm text-primary font-bold">${formatPrice(item.price * (item.qty || 1))}</div>
       </div>
       <div class="flex items-center gap-2">
         <button onclick="changeQty(${item.id}, -1)" class="px-2 py-1 bg-primary/10 rounded">-</button>
@@ -490,7 +523,7 @@
     </div>
   `).join('');
       const total = cart.reduce((s, i) => s + (i.price * (i.qty || 1)), 0);
-      document.getElementById('cart-total').textContent = `$${total.toFixed(2)}`;
+      document.getElementById('cart-total').textContent = formatPrice(total);
     }
 
     function changeQty(id, delta) {
@@ -522,9 +555,9 @@
       const total = cart.reduce((s, i) => s + (i.price * (i.qty || 1)), 0);
       let text = 'Pedido Maleiwa:\n';
       cart.forEach(item => {
-        text += `- ${item.qty} x ${item.name} (${item.size}, ${item.color}) - $${(item.price * item.qty).toFixed(2)}\n`;
+        text += `- ${item.qty} x ${item.name} (${item.size}, ${item.color}) - ${formatPrice(item.price * item.qty)}\n`;
       });
-      text += `\nTotal: $${total.toFixed(2)}`;
+      text += `\nTotal: ${formatPrice(total)}`;
       const phone = '573046601648';
       const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
       window.location.href = waUrl;
@@ -534,7 +567,7 @@
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCartModal(); });
 
     const cartModalHTML = `
-<div id="cartModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">\n  <div id="cartModalContent" class="bg-background-light dark:bg-background-dark rounded-2xl p-6 max-w-md mx-4 shadow-2xl transform scale-95 transition-transform duration-300">\n    <div class="flex flex-col">\n      <div class="flex items-center justify-between mb-4">\n        <h3 class="text-lg font-bold">Tu Carrito</h3>\n        <button onclick="closeCartModal()" class="text-slate-500">Cerrar</button>\n      </div>\n      <div id="cart-items" class="mb-4"></div>\n      <div class="flex items-center justify-between font-bold mb-4">Total: <span id="cart-total">$0.00</span></div>\n      <div class="flex gap-2">\n        <button onclick="checkout()" class="flex-1 py-3 bg-primary text-white rounded-lg">Pagar</button>\n        <button onclick="clearCart()" class="py-3 px-4 border rounded-lg">Vaciar</button>\n      </div>\n    </div>\n  </div>\n</div>\n`;
+<div id="cartModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">\n  <div id="cartModalContent" class="bg-background-light dark:bg-background-dark rounded-2xl p-6 max-w-md mx-4 shadow-2xl transform scale-95 transition-transform duration-300">\n    <div class="flex flex-col">\n      <div class="flex items-center justify-between mb-4">\n        <h3 class="text-lg font-bold">Tu Carrito</h3>\n        <button onclick="closeCartModal()" class="text-slate-500">Cerrar</button>\n      </div>\n      <div id="cart-items" class="mb-4"></div>\n      <div class="flex items-center justify-between font-bold mb-4">Total: <span id="cart-total">$0</span></div>\n      <div class="flex gap-2">\n        <button onclick="checkout()" class="flex-1 py-3 bg-primary text-white rounded-lg">Pagar</button>\n        <button onclick="clearCart()" class="py-3 px-4 border rounded-lg">Vaciar</button>\n      </div>\n    </div>\n  </div>\n</div>\n`;
     document.body.insertAdjacentHTML('beforeend', cartModalHTML);
 
     // initialize cart count on load
