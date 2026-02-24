@@ -162,42 +162,7 @@
       </div>
     </section>
 
-    <!-- Related Products -->
-    <section class="w-full max-w-[1000px] px-6 py-12 border-t border-primary/10">
-      <h2 class="text-2xl font-bold mb-6">Productos Relacionados</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer">
-          <div class="relative overflow-hidden rounded-xl aspect-[3/4] bg-slate-300">
-            <img src="https://images.unsplash.com/photo-1495385794356-15371f348c6d?w=400&h=500&fit=crop"
-              alt="Producto relacionado" class="w-full h-full object-cover hover:scale-105 transition-transform">
-          </div>
-          <div class="p-4">
-            <h3 class="font-semibold">Producto Relacionado 1</h3>
-            <p class="text-primary font-bold">$89</p>
-          </div>
-        </div>
-        <div class="rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer">
-          <div class="relative overflow-hidden rounded-xl aspect-[3/4] bg-slate-300">
-            <img src="Instante.webp" alt="Producto relacionado"
-              class="w-full h-full object-cover hover:scale-105 transition-transform">
-          </div>
-          <div class="p-4">
-            <h3 class="font-semibold">Producto Relacionado 2</h3>
-            <p class="text-primary font-bold">$105</p>
-          </div>
-        </div>
-        <div class="rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer">
-          <div class="relative overflow-hidden rounded-xl aspect-[3/4] bg-slate-300">
-            <img src="https://images.unsplash.com/photo-1495385794356-15371f348c6d?w=400&h=500&fit=crop"
-              alt="Producto relacionado" class="w-full h-full object-cover hover:scale-105 transition-transform">
-          </div>
-          <div class="p-4">
-            <h3 class="font-semibold">Producto Relacionado 3</h3>
-            <p class="text-primary font-bold">$95</p>
-          </div>
-        </div>
-      </div>
-    </section>
+
 
     <!-- Footer -->
     <footer class="mt-auto py-8 w-full max-w-[1000px] border-t border-primary/10 text-center">
@@ -395,15 +360,29 @@
       const sizesEl = document.getElementById('product-sizes');
       if (sizesEl) {
         if (product.sizes && Array.isArray(product.sizes) && product.sizes.length) {
-          sizesEl.innerHTML = product.sizes.map(sz => `<button class="w-12 h-12 border-2 border-slate-300 rounded-lg hover:border-primary transition-colors font-semibold">${sz}</button>`).join('');
+          sizesEl.innerHTML = product.sizes.map(sz => `<button class="w-12 h-12 border-2 border-slate-300 rounded-lg hover:border-primary transition-colors font-semibold" onclick="selectSize(this)">${sz}</button>`).join('');
         }
       }
 
       // colors
       const colorsEl = document.getElementById('product-colors');
       if (colorsEl) {
+        const colorMap = {
+          'blanco': '#ffffff', 'negro': '#000000', 'rojo': '#ef4444', 'azul': '#3b82f6',
+          'verde': '#22c55e', 'amarillo': '#eab308', 'rosa': '#ec4899', 'gris': '#94a3b8',
+          'marrón': '#78350f', 'beige': '#f5f5dc', 'ocre': '#c2780e', 'coral': '#ff7f50',
+          'turquesa': '#40e0d0', 'lavanda': '#e6e6fa', 'marino': '#000080'
+        };
+        const getCol = (c) => colorMap[c.toLowerCase()] || '#cbd5e1';
+
         if (product.colors && Array.isArray(product.colors) && product.colors.length) {
-          colorsEl.innerHTML = product.colors.map(c => `<div class="flex items-center gap-2"><span class="inline-block w-8 h-8 rounded-full bg-slate-200 border"></span><span class="text-sm">${c}</span></div>`).join('');
+          colorsEl.innerHTML = product.colors.map(c => `
+            <button 
+              class="flex items-center gap-2 p-1 border-2 border-transparent rounded-lg hover:border-primary transition-all whitespace-nowrap"
+              onclick="selectColor(this, '${c.replace(/'/g, "\\\'")}')">
+              <span class="inline-block w-6 h-6 rounded-full border border-slate-400" style="background-color: ${getCol(c)}"></span>
+              <span class="text-sm font-medium px-1">${c}</span>
+            </button>`).join('');
         }
       }
     }
@@ -496,7 +475,20 @@
         document.getElementById('cart-total').textContent = '$0.00';
         return;
       }
-      container.innerHTML = cart.map(item => `\n    <div class="flex items-center justify-between py-3 border-b">\n      <div>\n        <div class="font-semibold">${item.name}</div>\n        <div class="text-sm text-slate-500">${item.qty} × $${item.price.toFixed(2)}</div>\n      </div>\n      <div class="flex items-center gap-2">\n        <button onclick="changeQty(${item.id}, -1)" class="px-2 py-1 bg-primary/10 rounded">-</button>\n        <span class="w-6 text-center">${item.qty}</span>\n        <button onclick="changeQty(${item.id}, 1)" class="px-2 py-1 bg-primary/10 rounded">+</button>\n      </div>\n    </div>\n  `).join('');
+      container.innerHTML = cart.map(item => `
+    <div class="flex items-center justify-between py-3 border-b">
+      <div>
+        <div class="font-semibold text-sm">${item.name}</div>
+        <div class="text-[10px] text-slate-500 uppercase font-bold">${item.size} • ${item.color}</div>
+        <div class="text-sm text-primary font-bold">$${(item.price * (item.qty || 1)).toFixed(2)}</div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="changeQty(${item.id}, -1)" class="px-2 py-1 bg-primary/10 rounded">-</button>
+        <span class="w-6 text-center text-sm font-bold">${item.qty}</span>
+        <button onclick="changeQty(${item.id}, 1)" class="px-2 py-1 bg-primary/10 rounded">+</button>
+      </div>
+    </div>
+  `).join('');
       const total = cart.reduce((s, i) => s + (i.price * (i.qty || 1)), 0);
       document.getElementById('cart-total').textContent = `$${total.toFixed(2)}`;
     }
@@ -530,7 +522,7 @@
       const total = cart.reduce((s, i) => s + (i.price * (i.qty || 1)), 0);
       let text = 'Pedido Maleiwa:\n';
       cart.forEach(item => {
-        text += `- ${item.qty} x ${item.name} - $${(item.price * item.qty).toFixed(2)}\n`;
+        text += `- ${item.qty} x ${item.name} (${item.size}, ${item.color}) - $${(item.price * item.qty).toFixed(2)}\n`;
       });
       text += `\nTotal: $${total.toFixed(2)}`;
       const phone = '573046601648';

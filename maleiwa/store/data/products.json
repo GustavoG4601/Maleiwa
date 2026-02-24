@@ -5,18 +5,20 @@
     "products": [
       {
         "id": 1,
-        "name": "Gustavo ",
-        "price": "200",
-        "oldPrice": "44",
-        "image": "/store/uploads/1771958040032-yr1xiq.webp",
-        "color": "",
-        "material": "Potacio",
-        "description": "",
+        "name": "Maleiwa",
+        "price": "75.000",
+        "oldPrice": "",
+        "image": "/store/uploads/1771962729821-tgiqq2.webp",
+        "color": "Blanco",
+        "material": "Tela Fina",
+        "description": "La camiseta Malewa es una celebración de la naturaleza, diseñada con texturas orgánicas y tonos que evocan nuestras raíces más profundas. Cada prenda refleja la belleza del entorno, fusionando estilo y sostenibilidad en una pieza única que te conecta con el mundo natural. Ideal para quienes buscan autenticidad y confort en su vestimenta.\r\n",
         "specs": [
-          "qqq"
+          "100% Algodón Orgánico\\n Producción Sostenible"
         ],
         "sizes": [],
-        "colors": []
+        "colors": [
+          "Blanco"
+        ]
       }
     ]
   }
