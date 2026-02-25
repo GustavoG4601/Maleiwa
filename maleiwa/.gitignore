@@ -1,8 +1,9 @@
-node_modules
-.DS_Store
-npm-debug.log
+node_modules/
 .env
+
+# Ignorar bases de datos locales (Esto evita que tus pruebas locales borren lo de producción)
 store/data/products.json
-# Opcional: Descomenta si quieres que tus productos locales no se suban al servidor
-# store/data/products.json
-# store/uploads/*
+store/data/home.json
+
+# Ignorar imágenes subidas localmente
+store/uploads/*
