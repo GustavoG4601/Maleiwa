@@ -13,6 +13,8 @@
     }
   </script>
 
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap"
     rel="stylesheet" />
   <link
@@ -27,6 +29,74 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+
+    select.appearance-none::-ms-expand {
+      display: none;
+    }
+
+    select.appearance-none {
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
+      appearance: none !important;
+      background-image: none !important;
+      background-position: 0 0 !important;
+      background-size: 0 !important;
+    }
+
+    /* Hide arrow in IE/Edge */
+    select.appearance-none::-ms-expand {
+      display: none !important;
+    }
+
+    .pb-safe {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .nav-active {
+      @apply text-primary;
+    }
+
+    /* Toast Styles */
+    .toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 9999;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: white;
+      color: #211911;
+      padding: 16px 24px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateX(120%);
+      transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      pointer-events: auto;
+      border-left: 4px solid #d2781e;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .dark .toast {
+      background: #2d2419;
+      color: white;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Edit Mode Visual Indicator */
+    .edit-mode-active {
+      border: 2px solid #d2781e !important;
+      background-color: rgba(210, 120, 30, 0.03);
+      position: relative;
+    }
   </style>
 </head>
 
@@ -34,43 +104,92 @@
   <div
     class="relative min-h-screen w-full flex flex-col items-center bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(#3d3228_1px,transparent_1px)]">
 
-    <!-- Header (same style) -->
-    <header class="w-full max-w-[1000px] px-6 py-6 border-b border-primary/10">
-      <div class="flex items-center justify-between">
-        <a href="/store/index.html"
-          class="flex items-center gap-2 text-slate-900 dark:text-slate-100 hover:opacity-80 transition-opacity">
-          <img src="logo.webp" alt="Maleiwa" class="h-10">
-        </a>
-        <div class="flex items-center gap-4">
-          <button onclick="location.href='/store/index.html'"
-            class="px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors">Sitio</button>
-        </div>
+    <!-- Header -->
+    <header
+      class="w-full max-w-[1000px] flex items-center justify-between px-6 py-6 sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+      <nav class="hidden md:flex items-center gap-6">
+        <a href="index.html" class="text-slate-900 dark:text-slate-100 hover:opacity-80 font-semibold">Inicio</a>
+        <a href="collection.html?id=esencia"
+          class="text-slate-900 dark:text-slate-100 hover:opacity-80 font-semibold">Colección</a>
+        <a href="collection.html?q=favoritos"
+          class="text-slate-900 dark:text-slate-100 hover:opacity-80 font-semibold">Favoritos</a>
+        <a href="/store/admin.html"
+          class="text-slate-900 dark:text-slate-100 font-semibold underline decoration-primary decoration-2 underline-offset-4">Perfil</a>
+      </nav>
+      <div class="flex flex-col items-center">
+        <img src="logo.webp" alt="Maleiwa" class="h-10">
+      </div>
+      <div class="flex items-center gap-4">
+        <button onclick="location.href='/store/index.html'"
+          class="px-4 py-2 bg-primary/10 text-primary rounded-lg font-semibold hover:bg-primary/20 transition-colors">Volver
+          al Sitio</button>
       </div>
     </header>
 
-    <main class="w-full max-w-[1000px] px-6 py-8">
+    <main class="w-full max-w-[1000px] px-6 py-8 pb-40">
       <h1 class="text-3xl font-bold mb-4">Panel de Administración</h1>
 
       <div id="loginBox"
-        class="bg-background-light dark:bg-background-dark rounded-xl p-6 border border-primary/10 shadow-sm">
-        <p class="mb-4 text-slate-600">Accede con las credenciales del administrador.</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <label class="block">Usuario <input id="username" class="w-full p-3 border rounded"
-              placeholder="Usuario"></label>
-          <label class="block">Contraseña <input id="password" type="password" class="w-full p-3 border rounded"
-              placeholder="Contraseña"></label>
+        class="bg-background-light dark:bg-background-dark rounded-2xl p-8 border border-primary/10 shadow-xl max-w-lg mx-auto w-full">
+        <div class="text-center mb-8">
+          <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="material-symbols-outlined text-3xl text-primary font-light">lock</span>
+          </div>
+          <h2 class="text-2xl font-bold">Admin Maleiwa</h2>
+          <p class="text-slate-500 mt-2">Accede para gestionar tu tienda</p>
         </div>
-        <div class="mt-4 flex gap-2">
-          <button id="loginBtn" class="px-4 py-3 bg-primary text-white rounded-lg font-semibold">Iniciar sesión</button>
-          <a href="/store/index.html" class="px-4 py-3 border rounded-lg">Volver</a>
+
+        <div class="space-y-4">
+          <label class="block">
+            <span class="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Usuario</span>
+            <input id="username"
+              class="w-full p-4 border rounded-xl bg-slate-50 dark:bg-slate-800 mt-1 focus:ring-2 focus:ring-primary/20 outline-none"
+              placeholder="Admin">
+          </label>
+          <label class="block">
+            <span class="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Contraseña</span>
+            <input id="password" type="password"
+              class="w-full p-4 border rounded-xl bg-slate-50 dark:bg-slate-800 mt-1 focus:ring-2 focus:ring-primary/20 outline-none"
+              placeholder="••••••••">
+          </label>
+        </div>
+
+        <div class="mt-8 flex flex-col gap-3">
+          <button id="loginBtn"
+            class="w-full py-4 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 transition-transform active:scale-95">
+            Iniciar sesión
+          </button>
+          <a href="/store/index.html"
+            class="w-full py-4 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-center hover:bg-slate-50 transition-colors">
+            Volver al Inicio
+          </a>
         </div>
       </div>
 
       <div id="adminArea"
-        class="hidden mt-6 bg-background-light dark:bg-background-dark rounded-xl p-6 border border-primary/10 shadow-sm">
-        <!-- Tabs -->
+        class="hidden mt-8 bg-background-light dark:bg-background-dark rounded-2xl p-6 md:p-8 border border-primary/10 shadow-sm">
+        <!-- Tabs Selector (Mobile) -->
+        <div class="md:hidden mb-6">
+          <label for="tabSelector"
+            class="block text-sm font-bold uppercase tracking-widest text-slate-500 mb-2">Sección</label>
+          <div class="relative">
+            <select id="tabSelector" onchange="showTab(this.value)"
+              class="w-full p-4 bg-background-light dark:bg-background-dark border border-primary/20 rounded-xl font-semibold text-slate-900 dark:text-slate-100 shadow-sm focus:ring-2 focus:ring-primary/20 outline-none appearance-none backdrop-blur-sm cursor-pointer transition-all hover:border-primary/40">
+              <option value="add">Agregar Producto</option>
+              <option value="list">Listar Productos</option>
+              <option value="colls">Colecciones</option>
+              <option value="home">Editar Inicio</option>
+              <option value="settings">Configuración General</option>
+            </select>
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-primary/60">
+              <span class="material-symbols-outlined">expand_more</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs (Desktop) -->
         <div
-          class="flex gap-2 mb-6 border-b border-primary/10 overflow-x-auto no-scrollbar whitespace-nowrap -mx-6 px-6">
+          class="hidden md:flex gap-2 mb-6 border-b border-primary/10 overflow-x-auto no-scrollbar whitespace-nowrap -mx-6 px-6">
           <button id="tabAdd" class="px-4 py-3 border-b-2 border-primary font-semibold cursor-pointer shrink-0"
             onclick="showTab('add')">Agregar Producto</button>
           <button id="tabList"
@@ -82,44 +201,104 @@
           <button id="tabHome"
             class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
             onclick="showTab('home')">Editar Inicio</button>
+          <button id="tabSettings"
+            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
+            onclick="showTab('settings')">Configuración General</button>
         </div>
 
         <!-- Tab: Agregar/Editar Producto -->
-        <div id="tabAddContent">
-          <h2 class="text-xl font-semibold mb-4" id="formTitle">Agregar Producto</h2>
-          <form id="productForm" class="space-y-3">
+        <div id="tabAddContent" class="transition-all duration-300 rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold" id="formTitle">Agregar Producto</h2>
+            <div id="editBadge"
+              class="hidden px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-full uppercase tracking-tighter animate-pulse">
+              Modo Edición Activo
+            </div>
+          </div>
+          <form id="productForm" class="space-y-4">
             <input type="hidden" id="editProductId" value="">
             <input type="hidden" id="editCollectionId" value="">
-            <label class="block">Colección
-              <select name="collection" id="collection" class="w-full p-3 border rounded">
-                <!-- Dynamically populated -->
-              </select>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label class="block">Colección
+                <select name="collection" id="collection"
+                  class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800">
+                  <!-- Dynamically populated -->
+                </select>
+              </label>
+              <label class="block">Nombre
+                <input name="name" id="name" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="Ej: Camisa Lino">
+              </label>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <label class="block">Precio
+                <input name="price" id="price" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="$85">
+              </label>
+              <label class="block">Precio anterior
+                <input name="oldPrice" id="oldPrice" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="$0">
+              </label>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label class="block">Color Principal
+                <input name="color" id="color" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="Ej: Beige">
+              </label>
+              <label class="block">Material
+                <input name="material" id="material" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="100% Lino">
+              </label>
+            </div>
+
+            <label class="block">Descripción
+              <textarea name="description" id="description"
+                class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800" rows="3"
+                placeholder="Descripción del producto..."></textarea>
             </label>
-            <label class="block">Nombre <input name="name" id="name" class="w-full p-3 border rounded"></label>
-            <label class="block">Precio <input name="price" id="price" class="w-full p-3 border rounded"
-                placeholder="$85"></label>
-            <label class="block">Precio anterior (opcional) <input name="oldPrice" id="oldPrice"
-                class="w-full p-3 border rounded" placeholder="$0"></label>
-            <label class="block">Color <input name="color" id="color" class="w-full p-3 border rounded"
-                placeholder="Beige natural"></label>
-            <label class="block">Material <input name="material" id="material" class="w-full p-3 border rounded"
-                placeholder="100% Lino"></label>
-            <label class="block">Descripción <textarea name="description" id="description"
-                class="w-full p-3 border rounded" rows="4" placeholder="Descripción del producto..."></textarea></label>
-            <label class="block">Especificaciones (una por línea) <textarea name="specs" id="specs"
-                class="w-full p-3 border rounded" rows="3"
-                placeholder="✓ 100% Algodón Orgánico\n✓ Producción Sostenible"></textarea></label>
-            <label class="block">Tallas (coma separadas) <input name="sizes" id="sizes"
-                class="w-full p-3 border rounded" placeholder="XS,S,M,L,XL"></label>
-            <label class="block">Colores disponibles (coma separadas) <input name="colors" id="colors"
-                class="w-full p-3 border rounded" placeholder="Beige,Crema,Gris"></label>
-            <label class="block">Imagen <input type="file" name="image" id="image" class="block"></label>
-            <div class="flex gap-2">
-              <button class="px-4 py-3 bg-primary text-white rounded-lg" id="saveBtn" type="submit">Guardar
-                Producto</button>
-              <button class="px-4 py-3 border rounded-lg hidden" id="cancelEditBtn" type="button"
-                onclick="cancelEdit()">Cancelar Edición</button>
-              <button class="px-4 py-3 border rounded-lg" id="logoutBtn" type="button">Salir</button>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label class="block">Tallas (XS,S,M...)
+                <input name="sizes" id="sizes" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="XS,S,M,L,XL">
+              </label>
+              <label class="block">Colores (Beige,Gris...)
+                <input name="colors" id="colors" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="Beige,Crema,Gris">
+              </label>
+            </div>
+
+            <label class="block">Especificaciones (una por línea)
+              <textarea name="specs" id="specs" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                rows="2" placeholder="✓ 100% Algodón Organico"></textarea>
+            </label>
+
+            <div class="p-4 bg-primary/5 rounded-xl border border-primary/10">
+              <label class="block text-sm font-bold text-primary mb-2 uppercase tracking-wider">Imágenes del
+                Producto</label>
+              <input type="file" name="images" id="images"
+                class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/80 cursor-pointer"
+                multiple>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-4">
+              <button
+                class="flex-1 py-4 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 transition-transform active:scale-95"
+                id="saveBtn" type="submit">
+                Guardar Producto
+              </button>
+              <button class="flex-1 py-4 border border-slate-200 dark:border-slate-700 rounded-xl font-bold hidden"
+                id="cancelEditBtn" type="button" onclick="cancelEdit()">
+                Cancelar Edición
+              </button>
+              <button
+                class="px-6 py-4 border border-rose-200 text-rose-500 rounded-xl font-bold hover:bg-rose-50 transition-colors"
+                id="logoutBtn" type="button">
+                Salir
+              </button>
             </div>
           </form>
           <div id="result" class="mt-4 text-slate-600"></div>
@@ -137,21 +316,23 @@
         <div id="tabCollsContent" class="hidden">
           <h2 class="text-xl font-semibold mb-4">Gestionar Colecciones</h2>
 
-          <div class="mb-8 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-primary/10">
-            <h3 class="font-semibold mb-3">Crear Nueva Colección</h3>
-            <div class="space-y-3">
-              <input id="newCollName" class="w-full p-3 border rounded"
+          <div class="mb-8 p-6 bg-primary/5 rounded-xl border border-primary/10">
+            <h3 class="font-bold text-sm text-primary uppercase tracking-wider mb-4">Crear Nueva Colección</h3>
+            <div class="space-y-4">
+              <input id="newCollName" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
                 placeholder="ID de la colección (ej: verano-2026)">
-              <input id="newCollTitle" class="w-full p-3 border rounded"
+              <input id="newCollTitle" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
                 placeholder="Nombre para mostrar (ej: Colección Verano)">
-              <textarea id="newCollDesc" class="w-full p-3 border rounded" rows="2"
+              <textarea id="newCollDesc" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800" rows="2"
                 placeholder="Descripción breve..."></textarea>
               <button onclick="addCollection()"
-                class="px-4 py-3 bg-primary text-white rounded-lg font-semibold w-full">Crear Colección</button>
+                class="w-full py-4 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 transition-transform active:scale-95">
+                Crear Colección
+              </button>
             </div>
           </div>
 
-          <h3 class="font-semibold mb-3">Colecciones Existentes</h3>
+          <h3 class="font-semibold mb-4">Colecciones Existentes</h3>
           <div id="collectionsList" class="space-y-3">
             <p class="text-slate-600">Cargando colecciones...</p>
           </div>
@@ -159,64 +340,107 @@
 
         <!-- Tab: Editar Inicio -->
         <div id="tabHomeContent" class="hidden">
-          <h2 class="text-xl font-semibold mb-4">Editar Inicio</h2>
-          <form id="homeForm" class="space-y-4">
+          <h2 class="text-xl font-semibold mb-6">Editar Inicio</h2>
+          <form id="homeForm" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <label class="block">Subtítulo Hero (badge)
-                <input id="heroSubtitle" class="w-full p-3 border rounded" placeholder="Edición Limitada">
+                <input id="heroSubtitle" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="Edición Limitada">
               </label>
               <label class="block">Título Principal Hero
-                <input id="heroTitleMain" class="w-full p-3 border rounded" placeholder="Nueva Colección">
+                <input id="heroTitleMain" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="Nueva Colección">
               </label>
               <label class="block">Título Acento Hero
-                <input id="heroTitleAccent" class="w-full p-3 border rounded" placeholder="Esencia Caribe">
+                <input id="heroTitleAccent" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="Esencia Caribe">
               </label>
               <label class="block">Descripción Hero
-                <input id="heroDescription" class="w-full p-3 border rounded" placeholder="Inspirada en la naturaleza">
+                <input id="heroDescription" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="Inspirada en la naturaleza">
               </label>
               <label class="block md:col-span-2">Cita / Descripción Acción
-                <textarea id="actionDescription" class="w-full p-3 border rounded" rows="2"
-                  placeholder="Texturas orgánicas..."></textarea>
+                <textarea id="actionDescription" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  rows="2" placeholder="Texturas orgánicas..."></textarea>
               </label>
               <label class="block">Texto Botón Acción
-                <input id="actionButtonText" class="w-full p-3 border rounded" placeholder="Explorar Colección">
+                <input id="actionButtonText" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="Explorar Colección">
               </label>
               <div class="md:col-span-2 grid grid-cols-2 gap-4">
                 <label class="block">Teaser 1 (Texto)
-                  <input id="teaser1Text" class="w-full p-3 border rounded" placeholder="Texturas">
+                  <input id="teaser1Text" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                    placeholder="Texturas">
                 </label>
                 <label class="block">Teaser 2 (Texto)
-                  <input id="teaser2Text" class="w-full p-3 border rounded" placeholder="Siluetas">
-                </label>
-              </div>
-              <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-primary/10 pt-4 mt-2">
-                <label class="block">Imagen Hero
-                  <input type="file" id="heroImageInput"
-                    class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90">
-                </label>
-                <label class="block">Imagen Teaser 1
-                  <input type="file" id="teaser1ImageInput"
-                    class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90">
-                </label>
-                <label class="block">Imagen Teaser 2
-                  <input type="file" id="teaser2ImageInput"
-                    class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90">
+                  <input id="teaser2Text" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                    placeholder="Siluetas">
                 </label>
               </div>
             </div>
-            <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-semibold">Guardar
-              Cambios</button>
+
+            <div class="p-6 bg-primary/5 rounded-xl border border-primary/10">
+              <h3 class="font-bold text-sm text-primary uppercase tracking-wider mb-4">Imágenes del Inicio</h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <label class="block">
+                  <span class="text-xs font-semibold mb-1 block">Imagen Hero</span>
+                  <input type="file" id="heroImageInput"
+                    class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer">
+                </label>
+                <label class="block">
+                  <span class="text-xs font-semibold mb-1 block">Imagen Teaser 1</span>
+                  <input type="file" id="teaser1ImageInput"
+                    class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer">
+                </label>
+                <label class="block">
+                  <span class="text-xs font-semibold mb-1 block">Imagen Teaser 2</span>
+                  <input type="file" id="teaser2ImageInput"
+                    class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer">
+                </label>
+              </div>
+            </div>
+
+            <button type="submit"
+              class="w-full py-4 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 transition-transform active:scale-95">
+              Guardar Cambios
+            </button>
           </form>
           <div id="homeResult" class="mt-4 text-slate-600"></div>
+        </div>
+
+        <!-- Tab: Configuración General -->
+        <div id="tabSettingsContent" class="hidden text-left">
+          <h2 class="text-xl font-semibold mb-6">Configuración General</h2>
+          <form id="settingsForm" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label class="block md:col-span-2">Número de WhatsApp (ej: 573046601648)
+                <input id="setWhatsapp" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="57...">
+              </label>
+              <label class="block md:col-span-2">Título "¿Quiénes Somos?"
+                <input id="setAboutTitle" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="¿Quiénes somos?">
+              </label>
+              <label class="block md:col-span-2">Texto "¿Quiénes Somos?"
+                <textarea id="setAboutText" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  rows="4"></textarea>
+              </label>
+            </div>
+            <button type="submit"
+              class="w-full py-4 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 transition-transform active:scale-95">
+              Guardar Configuración
+            </button>
+          </form>
+          <div id="settingsResult" class="mt-4 text-green-600 font-semibold text-center"></div>
         </div>
       </div>
     </main>
 
     <!-- Bottom nav like the rest of the site -->
-    <nav class="fixed bottom-0 left-0 right-0 z-50">
-      <div
-        class="w-full max-w-[1000px] mx-auto px-6 py-3 bg-background-light dark:bg-background-dark border-t border-primary/10 flex items-center justify-between">
-        <a class="flex flex-col items-center gap-1 text-primary" href="/store/index.html">
+    <nav
+      class="fixed bottom-0 left-0 right-0 z-[100] bg-background-light dark:bg-background-dark border-t border-primary/10 pb-safe">
+      <div class="w-full max-w-[1000px] mx-auto px-6 py-3 flex items-center justify-between">
+        <a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-600" href="/store/index.html">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M3 11.5L12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-8.5z" />
           </svg>
@@ -229,23 +453,16 @@
           </svg>
           <span class="text-[9px] font-bold tracking-tighter uppercase">Explorar</span>
         </a>
-        <div class="relative -mt-10">
 
-          <button aria-label="Acerca de Maleiwa"
-            class="bg-primary p-3 rounded-full shadow-lg shadow-primary/30 border-4 border-background-light dark:border-background-dark flex items-center justify-center"
-            onclick="location.href='/store/admin.html'">
-            <span class="material-symbols-outlined text-white text-2xl">info</span>
-          </button>
-        </div>
+        <!-- Empty Space for Center Alignment Consistency -->
+        <div class="w-12 h-10"></div>
+
         <a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-600" href="#"
-          onclick="openFavorites()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path
-              d="M12 21s-7.5-4.9-9.1-7.1C1.6 11.5 3.1 7.5 6.5 6.1 8.2 5.4 10 6 11 7.2c1-1.2 2.8-1.8 4.5-1.1 3.4 1.4 4.9 5.4 3.6 7.8C19.5 16.1 12 21 12 21z" />
-          </svg>
-          <span class="text-[9px] font-bold tracking-tighter uppercase">Favoritos</span>
+          onclick="showAboutModal()">
+          <span class="material-symbols-outlined text-2xl">info</span>
+          <span class="text-[9px] font-bold tracking-tighter uppercase">Nosotros</span>
         </a>
-        <a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-600" href="/store/admin.html">
+        <a class="flex flex-col items-center gap-1 text-primary" href="/store/admin.html">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5z" />
           </svg>
@@ -253,6 +470,47 @@
         </a>
       </div>
     </nav>
+
+    <!-- About Modal -->
+    <div id="aboutModal"
+      class="fixed inset-0 bg-background-light dark:bg-background-dark z-[60] opacity-0 pointer-events-none transition-all duration-500 transform translate-y-10">
+      <div class="h-full w-full flex flex-col p-8 overflow-y-auto">
+        <div class="flex justify-end mb-8">
+          <button onclick="closeAboutModal()" class="p-2 rounded-full bg-primary/10 text-primary">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="flex flex-col items-center max-w-2xl mx-auto">
+          <div class="w-24 h-24 mb-10 overflow-hidden rounded-full shadow-2xl ring-4 ring-primary/20">
+            <img src="logo.webp" class="w-full h-full object-contain p-4" alt="Maleiwa">
+          </div>
+          <h2 class="text-4xl font-bold mb-6 text-slate-900 dark:text-slate-100 tracking-tight text-center"
+            id="aboutTitle">¿Quiénes somos?</h2>
+          <div class="w-12 h-1 bg-primary mb-10 rounded-full"></div>
+          <p class="text-xl text-slate-600 dark:text-slate-400 mb-12 leading-relaxed text-center font-light italic normal-case"
+            id="aboutText">
+            Maleiwa es una marca de moda consciente y minimalista inspirada en la naturaleza.
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full mt-8">
+            <div class="p-6 rounded-2xl bg-primary/5 text-center">
+              <span class="material-symbols-outlined text-primary mb-3">eco</span>
+              <h3 class="font-bold text-sm uppercase tracking-widest mb-2">Sostenible</h3>
+              <p class="text-xs opacity-70 normal-case">Materiales nobles y respetuosos con el ambiente.</p>
+            </div>
+            <div class="p-6 rounded-2xl bg-primary/5 text-center">
+              <span class="material-symbols-outlined text-primary mb-3">auto_awesome</span>
+              <h3 class="font-bold text-sm uppercase tracking-widest mb-2">Exclusivo</h3>
+              <p class="text-xs opacity-70 normal-case">Colecciones limitadas con diseño de autor.</p>
+            </div>
+            <div class="p-6 rounded-2xl bg-primary/5 text-center">
+              <span class="material-symbols-outlined text-primary mb-3">volunteer_activism</span>
+              <h3 class="font-bold text-sm uppercase tracking-widest mb-2">Hecho a Mano</h3>
+              <p class="text-xs opacity-70 normal-case">Producción local con atención al detalle.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div>
 
@@ -262,15 +520,35 @@
       return res.json();
     }
 
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = 'toast flex items-center gap-3';
+      const icon = type === 'success' ? 'check_circle' : 'info';
+      toast.innerHTML = `<span class="material-symbols-outlined text-primary">${icon}</span><span class="font-bold text-sm tracking-tight">${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.classList.add('show'), 100);
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 500);
+      }, 3000);
+    }
+
     // Tab management
     function showTab(tabName) {
       // Save to hash
       window.location.hash = tabName;
 
+      // Sync selector if on mobile
+      const selector = document.getElementById('tabSelector');
+      if (selector) selector.value = tabName;
+
       document.getElementById('tabAddContent').classList.toggle('hidden', tabName !== 'add');
       document.getElementById('tabListContent').classList.toggle('hidden', tabName !== 'list');
       document.getElementById('tabCollsContent').classList.toggle('hidden', tabName !== 'colls');
       document.getElementById('tabHomeContent').classList.toggle('hidden', tabName !== 'home');
+      document.getElementById('tabSettingsContent').classList.toggle('hidden', tabName !== 'settings');
 
       document.getElementById('tabAdd').classList.toggle('border-primary', tabName === 'add');
       document.getElementById('tabAdd').classList.toggle('border-transparent', tabName !== 'add');
@@ -288,10 +566,15 @@
       document.getElementById('tabHome').classList.toggle('border-transparent', tabName !== 'home');
       document.getElementById('tabHome').classList.toggle('text-slate-600', tabName !== 'home');
 
+      document.getElementById('tabSettings').classList.toggle('border-primary', tabName === 'settings');
+      document.getElementById('tabSettings').classList.toggle('border-transparent', tabName !== 'settings');
+      document.getElementById('tabSettings').classList.toggle('text-slate-600', tabName !== 'settings');
+
       if (tabName === 'list') loadProducts();
       if (tabName === 'colls') loadCollections();
       if (tabName === 'add') populateCollectionDropdown();
       if (tabName === 'home') loadHomeConfig();
+      if (tabName === 'settings') loadSettings();
     }
 
     async function loadHomeConfig() {
@@ -335,14 +618,14 @@
         const res = await fetch('/api/home', { method: 'POST', body: fd, credentials: 'include' });
         const r = await res.json();
         if (r.ok) {
-          alert('Configuración de inicio guardada');
+          showToast('Configuración de inicio guardada');
           document.getElementById('homeResult').innerText = 'Guardado con éxito.';
-          location.reload(); // Reload to show new images if any
+          setTimeout(() => location.reload(), 1000);
         } else {
-          alert('Error al guardar');
+          showToast('Error al guardar', 'info');
         }
       } catch (e) {
-        alert('Error de conexión');
+        showToast('Error de conexión', 'info');
       }
     });
 
@@ -367,12 +650,12 @@
       for (const id in data) {
         const c = data[id];
         html += `
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-primary/10 gap-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-primary/10 gap-4 transition-all hover:border-primary/30">
             <div class="flex-1">
-              <p class="font-semibold">${c.title} <span class="text-xs text-slate-500 font-normal">(${id})</span></p>
-              <p class="text-xs text-slate-500">${c.products?.length || 0} productos</p>
+              <p class="font-bold text-slate-900 dark:text-slate-100">${c.title} <span class="text-xs text-slate-500 font-normal ml-2">(${id})</span></p>
+              <p class="text-sm text-slate-500 mt-1">${c.products?.length || 0} productos registrados</p>
             </div>
-            <button onclick="deleteCollection('${id}')" class="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-xs font-semibold w-full sm:w-auto">
+            <button onclick="deleteCollection('${id}')" class="px-6 py-3 border border-rose-200 text-rose-500 rounded-xl font-bold hover:bg-rose-50 transition-colors text-sm w-full sm:w-auto">
               Eliminar
             </button>
           </div>
@@ -386,17 +669,17 @@
       const title = document.getElementById('newCollTitle').value.trim();
       const desc = document.getElementById('newCollDesc').value.trim();
 
-      if (!name) return alert('El ID es obligatorio');
+      if (!name) return showToast('El ID es obligatorio', 'info');
 
       const r = await postJSON('/api/collections', { name, title, desc });
       if (r.ok) {
-        alert('Colección creada');
+        showToast('Colección creada correctamente');
         document.getElementById('newCollName').value = '';
         document.getElementById('newCollTitle').value = '';
         document.getElementById('newCollDesc').value = '';
         loadCollections();
       } else {
-        alert(r.error || 'Error al crear colección');
+        showToast(r.error || 'Error al crear colección', 'info');
       }
     }
 
@@ -406,14 +689,14 @@
         const res = await fetch(`/api/collections/${id}`, { method: 'DELETE', credentials: 'include' });
         const data = await res.json();
         if (data.ok) {
-          alert('Colección eliminada');
+          showToast(`La colección "${id}" ha sido eliminada`);
           loadCollections();
           populateCollectionDropdown(); // refresh dropdown too
         } else {
-          alert(data.error || 'Error al eliminar');
+          showToast(data.error || 'Error al eliminar', 'info');
         }
       } catch (e) {
-        alert('Error de conexión al eliminar');
+        showToast('Error de conexión al eliminar', 'info');
       }
     }
 
@@ -456,16 +739,19 @@
 
         collection.products.forEach(product => {
           html += `
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-primary/10 gap-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-primary/10 gap-4 transition-all hover:border-primary/30">
             <div class="flex-1">
-              <p class="font-semibold text-base">${product.name}</p>
-              <p class="text-sm text-slate-600 dark:text-slate-400">${product.color || ''} • ${product.price || '$0'}</p>
+              <div class="flex items-center gap-3">
+                <p class="font-bold text-slate-900 dark:text-slate-100">${product.name}</p>
+                <span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full uppercase tracking-wider">${product.color || 'N/A'}</span>
+              </div>
+              <p class="text-sm text-slate-500 mt-1 font-semibold text-primary">${product.price || '$0'}</p>
             </div>
             <div class="flex gap-2 w-full sm:w-auto">
-              <button onclick='editProduct("${collectionName}", ${JSON.stringify(product).replace(/'/g, "&#39;")})' class="flex-1 sm:flex-none px-3 py-2 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors text-sm font-semibold">
+              <button onclick='editProduct("${collectionName}", ${JSON.stringify(product).replace(/'/g, "&#39;")})' class="flex-1 sm:flex-none px-5 py-3 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-colors text-sm font-bold">
                 Editar
               </button>
-              <button onclick="deleteProduct('${collectionName}', ${product.id})" class="flex-1 sm:flex-none px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm font-semibold">
+              <button onclick="deleteProduct('${collectionName}', ${product.id})" class="flex-1 sm:flex-none px-5 py-3 border border-rose-200 text-rose-500 rounded-xl hover:bg-rose-50 transition-colors text-sm font-bold">
                 Eliminar
               </button>
             </div>
@@ -490,13 +776,13 @@
         const data = await res.json();
 
         if (data.ok) {
-          alert('Producto eliminado');
+          showToast('Producto eliminado permanentemente');
           loadProducts();
         } else {
-          alert('Error al eliminar el producto');
+          showToast('Error al eliminar el producto', 'info');
         }
       } catch (e) {
-        alert('Error al eliminar el producto');
+        showToast('Error al eliminar el producto', 'info');
       }
     }
 
@@ -506,7 +792,8 @@
       const r = await postJSON('/api/login', { username, password });
       if (r.ok) {
         showPanel();
-      } else alert('Credenciales inválidas');
+        showToast('Acceso autorizado. Bienvenido.');
+      } else showToast('Credenciales inválidas. Reintenta.', 'info');
     });
 
     function showPanel() {
@@ -548,8 +835,12 @@
       fd.append('sizes', document.getElementById('sizes').value || '');
       fd.append('colors', document.getElementById('colors').value || '');
 
-      const file = document.getElementById('image').files[0];
-      if (file) fd.append('image', file);
+      const files = document.getElementById('images').files;
+      if (files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+          fd.append('images', files[i]);
+        }
+      }
 
       let url = '/api/products';
       let method = 'POST';
@@ -562,8 +853,8 @@
       const res = await fetch(url, { method, body: fd, credentials: 'include' });
       const data = await res.json();
       if (data.ok) {
-        const msg = editId ? 'Producto actualizado.' : 'Producto agregado.';
-        alert(msg);
+        const msg = editId ? '¡Producto actualizado con éxito!' : '¡Producto agregado con éxito!';
+        showToast(msg);
         document.getElementById('result').innerText = msg;
 
         if (editId) {
@@ -574,7 +865,10 @@
           location.href = `/store/collection.html?id=${encodeURIComponent(document.getElementById('collection').value)}`;
         }
       }
-      else document.getElementById('result').innerText = 'Error al procesar producto.';
+      else {
+        showToast('Error al procesar la solicitud', 'info');
+        document.getElementById('result').innerText = 'Error al procesar producto.';
+      }
     });
 
     function editProduct(collectionId, product) {
@@ -582,6 +876,8 @@
       document.getElementById('formTitle').innerText = 'Editar Producto';
       document.getElementById('saveBtn').innerText = 'Actualizar Producto';
       document.getElementById('cancelEditBtn').classList.remove('hidden');
+      document.getElementById('editBadge').classList.remove('hidden');
+      document.getElementById('tabAddContent').classList.add('edit-mode-active');
 
       document.getElementById('editProductId').value = product.id;
       document.getElementById('editCollectionId').value = collectionId;
@@ -605,6 +901,8 @@
       document.getElementById('formTitle').innerText = 'Agregar Producto';
       document.getElementById('saveBtn').innerText = 'Guardar Producto';
       document.getElementById('cancelEditBtn').classList.add('hidden');
+      document.getElementById('editBadge').classList.add('hidden');
+      document.getElementById('tabAddContent').classList.remove('edit-mode-active');
     }
 
     document.getElementById('logoutBtn').addEventListener('click', async () => {
@@ -613,6 +911,58 @@
       } catch (e) { }
       location.href = '/';
     });
+
+    async function loadSettings() {
+      try {
+        const res = await fetch('/api/settings');
+        const data = await res.json();
+        // Update form fields
+        document.getElementById('setWhatsapp').value = data.whatsapp || '';
+        document.getElementById('setAboutTitle').value = data.aboutUsTitle || '';
+        document.getElementById('setAboutText').value = data.aboutUsText || '';
+
+        // Update modal content
+        if (data.aboutUsTitle) {
+          const titleEl = document.getElementById('aboutTitle');
+          if (titleEl) titleEl.textContent = data.aboutUsTitle;
+        }
+        if (data.aboutUsText) {
+          const textEl = document.getElementById('aboutText');
+          if (textEl) textEl.textContent = data.aboutUsText;
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        whatsapp: document.getElementById('setWhatsapp').value,
+        aboutUsTitle: document.getElementById('setAboutTitle').value,
+        aboutUsText: document.getElementById('setAboutText').value
+      };
+      const r = await postJSON('/api/settings', data);
+      if (r.ok) {
+        showToast('Configuración general guardada');
+        document.getElementById('settingsResult').innerText = 'Configuración guardada con éxito.';
+        loadSettings();
+        setTimeout(() => { document.getElementById('settingsResult').innerText = ''; }, 3000);
+      } else {
+        showToast('Error al guardar configuración', 'info');
+      }
+    });
+
+    function showAboutModal() {
+      const modal = document.getElementById('aboutModal');
+      modal.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10');
+      modal.classList.add('translate-y-0');
+      loadSettings();
+    }
+
+    function closeAboutModal() {
+      const modal = document.getElementById('aboutModal');
+      modal.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10');
+      modal.classList.remove('translate-y-0');
+    }
 
     // Favorites Modal logic for Admin
     function getFavs() { try { return JSON.parse(localStorage.getItem('maleiwa_favs') || '[]'); } catch (e) { return []; } }
@@ -657,7 +1007,10 @@
     document.body.insertAdjacentHTML('beforeend', favModalHTML);
     document.getElementById('favModal').addEventListener('click', (e) => { if (e.target.id === 'favModal') closeFavModal(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeFavModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeFavModal(); });
   </script>
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
 </body>
 
 </html>

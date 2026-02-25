@@ -7,7 +7,10 @@
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap"
     rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap"
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
     rel="stylesheet" />
   <script id="tailwind-config">
     tailwind.config = {
@@ -27,7 +30,48 @@
       },
     }
   </script>
+  <style>
+    /* Toast Styles */
+    .toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 9999;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: white;
+      color: #211911;
+      padding: 16px 24px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateX(120%);
+      transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      pointer-events: auto;
+      border-left: 4px solid #d2781e;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .dark .toast {
+      background: #2d2419;
+      color: white;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+  </style>
   <title>Maleiwa | Producto</title>
+  <!-- Open Graph / Meta Tags Dinámicos -->
+  <meta property="og:title" content="Maleiwa | Producto" />
+  <meta property="og:description" content="Descubre nuestra colección de moda consciente inspirada en la naturaleza." />
+  <meta property="og:image" content="/store/logo.webp" />
+  <meta property="og:type" content="website" />
 </head>
 
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
@@ -35,23 +79,29 @@
     class="relative min-h-screen w-full flex flex-col items-center bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(#3d3228_1px,transparent_1px)]">
 
     <!-- Header -->
-    <header class="w-full max-w-[1000px] px-6 py-6 border-b border-primary/10">
-      <div class="flex items-center justify-between">
-        <a href="index.html"
-          class="flex items-center gap-2 text-slate-900 dark:text-slate-100 hover:opacity-80 transition-opacity">
-          <img src="logo.webp" alt="Maleiwa" class="h-10">
-        </a>
-        <div class="flex items-center gap-4">
-          <button id="openCartBtn" onclick="showCartModal()"
-            class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-primary/10 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"
-              class="text-primary">
-              <path
-                d="M6 2h12l1 4v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6l1-4zm6 7a3 3 0 0 0 3-3h-2a1 1 0 0 1-2 0H9a3 3 0 0 0 3 3z" />
-            </svg>
-            <span class="text-sm font-semibold" id="cart-count">0</span>
-          </button>
-        </div>
+    <header
+      class="w-full max-w-[1000px] flex items-center justify-between px-6 py-6 sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+      <nav class="hidden md:flex items-center gap-6">
+        <a href="index.html" class="text-slate-900 dark:text-slate-100 hover:opacity-80 font-semibold">Inicio</a>
+        <a href="collection.html?id=esencia"
+          class="text-slate-900 dark:text-slate-100 hover:opacity-80 font-semibold">Colección</a>
+        <a href="collection.html?q=favoritos"
+          class="text-slate-900 dark:text-slate-100 hover:opacity-80 font-semibold">Favoritos</a>
+        <a href="/store/admin.html" class="text-slate-900 dark:text-slate-100 font-semibold">Perfil</a>
+      </nav>
+      <div class="flex flex-col items-center">
+        <img src="logo.webp" alt="Maleiwa" class="h-10">
+      </div>
+      <div class="flex items-center gap-4">
+        <button id="openCartBtn" onclick="showCartModal()"
+          class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-primary/10 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"
+            class="text-primary">
+            <path
+              d="M6 2h12l1 4v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6l1-4zm6 7a3 3 0 0 0 3-3h-2a1 1 0 0 1-2 0H9a3 3 0 0 0 3 3z" />
+          </svg>
+          <span class="text-sm font-semibold" id="cart-count">0</span>
+        </button>
       </div>
     </header>
 
@@ -97,41 +147,16 @@
             <!-- Size Selection -->
             <div class="mb-6">
               <p class="text-lg font-semibold mb-3">Talla <span class="text-red-500">*</span></p>
-              <div id="product-sizes" class="flex gap-2 flex-wrap">
-                <button
-                  class="w-12 h-12 border-2 border-slate-300 rounded-lg hover:border-primary transition-colors font-semibold"
-                  onclick="selectSize(this)">XS</button>
-                <button
-                  class="w-12 h-12 border-2 border-slate-300 rounded-lg hover:border-primary transition-colors font-semibold"
-                  onclick="selectSize(this)">S</button>
-                <button
-                  class="w-12 h-12 border-2 border-slate-300 rounded-lg hover:border-primary transition-colors font-semibold"
-                  onclick="selectSize(this)">M</button>
-                <button
-                  class="w-12 h-12 border-2 border-slate-300 rounded-lg hover:border-primary transition-colors font-semibold"
-                  onclick="selectSize(this)">L</button>
-                <button
-                  class="w-12 h-12 border-2 border-slate-300 rounded-lg hover:border-primary transition-colors font-semibold"
-                  onclick="selectSize(this)">XL</button>
+              <div id="product-sizes" class="flex gap-2 flex-wrap text-left">
+                <!-- Dinámico -->
               </div>
             </div>
 
             <!-- Color Selection -->
             <div class="mb-8">
               <p class="text-lg font-semibold mb-3">Colores Disponibles <span class="text-red-500">*</span></p>
-              <div id="product-colors" class="flex gap-3">
-                <button
-                  class="w-10 h-10 rounded-full bg-amber-700 border-4 border-slate-400 hover:border-primary transition-colors"
-                  onclick="selectColor(this, 'Marrón')" title="Marrón"></button>
-                <button
-                  class="w-10 h-10 rounded-full bg-blue-400 border-4 border-slate-400 hover:border-primary transition-colors"
-                  onclick="selectColor(this, 'Azul')" title="Azul"></button>
-                <button
-                  class="w-10 h-10 rounded-full bg-slate-100 border-4 border-slate-400 hover:border-primary transition-colors"
-                  onclick="selectColor(this, 'Blanco')" title="Blanco"></button>
-                <button
-                  class="w-10 h-10 rounded-full bg-pink-300 border-4 border-slate-400 hover:border-primary transition-colors"
-                  onclick="selectColor(this, 'Rosa')" title="Rosa"></button>
+              <div id="product-colors" class="flex gap-3 text-left">
+                <!-- Dinámico -->
               </div>
             </div>
           </div>
@@ -190,17 +215,18 @@
         <span class="text-[9px] font-bold tracking-tighter uppercase">Explorar</span>
       </a>
       <div class="relative -mt-10">
-        <button id="aboutButton" onclick="showAboutModal()" aria-label="Acerca de Maleiwa"
+        <button id="mainFavButton" onclick="openFavorites()" aria-label="Favoritos"
           class="bg-primary p-3 rounded-full shadow-lg shadow-primary/30 border-4 border-background-light dark:border-background-dark flex items-center justify-center">
-          <span class="material-symbols-outlined text-white text-2xl">info</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path
+              d="M12 21s-7.5-4.9-9.1-7.1C1.6 11.5 3.1 7.5 6.5 6.1 8.2 5.4 10 6 11 7.2c1-1.2 2.8-1.8 4.5-1.1 3.4 1.4 4.9 5.4 3.6 7.8C19.5 16.1 12 21 12 21z" />
+          </svg>
         </button>
       </div>
-      <a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-600" href="#" onclick="openFavorites()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path
-            d="M12 21s-7.5-4.9-9.1-7.1C1.6 11.5 3.1 7.5 6.5 6.1 8.2 5.4 10 6 11 7.2c1-1.2 2.8-1.8 4.5-1.1 3.4 1.4 4.9 5.4 3.6 7.8C19.5 16.1 12 21 12 21z" />
-        </svg>
-        <span class="text-[9px] font-bold tracking-tighter uppercase">Favoritos</span>
+      <a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-600" href="#"
+        onclick="showAboutModal()">
+        <span class="material-symbols-outlined text-2xl">info</span>
+        <span class="text-[9px] font-bold tracking-tighter uppercase">Nosotros</span>
       </a>
       <a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-600" href="admin.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -211,54 +237,59 @@
     </div>
   </nav>
 
-  <!-- About Modal for product -->
+  <!-- About Modal -->
   <div id="aboutModal"
-    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
-    <div
-      class="bg-background-light dark:bg-background-dark rounded-2xl p-6 max-w-lg mx-4 shadow-2xl transform scale-95 transition-transform duration-300"
-      id="aboutModalContent">
-      <div class="flex flex-col items-center text-center">
-        <div class="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"
-            class="text-primary">
-            <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-          </svg>
+    class="fixed inset-0 bg-background-light dark:bg-background-dark z-[60] opacity-0 pointer-events-none transition-all duration-500 transform translate-y-10">
+    <div class="h-full w-full flex flex-col p-8 overflow-y-auto">
+      <div class="flex justify-end mb-8">
+        <button onclick="closeAboutModal()" class="p-2 rounded-full bg-primary/10 text-primary">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="flex flex-col items-center max-w-2xl mx-auto">
+        <div class="w-24 h-24 mb-10 overflow-hidden rounded-full shadow-2xl ring-4 ring-primary/20">
+          <img src="logo.webp" class="w-full h-full object-contain p-4" alt="Maleiwa">
         </div>
-        <h2 class="text-2xl font-bold mb-2 text-slate-900 dark:text-slate-100">¿Quiénes somos?</h2>
-        <p class="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
-          Maleiwa es una marca de moda consciente y minimalista inspirada en la naturaleza. Nuestras piezas buscan
-          conectar con
-          las raíces, texturas y colores orgánicos, priorizando materiales responsables y colecciones limitadas.
+        <h2 class="text-4xl font-bold mb-6 text-slate-900 dark:text-slate-100 tracking-tight text-center"
+          id="aboutTitle">¿Quiénes somos?</h2>
+        <div class="w-12 h-1 bg-primary mb-10 rounded-full"></div>
+        <p class="text-xl text-slate-600 dark:text-slate-400 mb-12 leading-relaxed text-center font-light italic normal-case"
+          id="aboutText">
+          Maleiwa es una marca de moda consciente y minimalista inspirada en la naturaleza.
         </p>
-        <button onclick="closeAboutModal()"
-          class="w-full py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors">Cerrar</button>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full mt-8">
+          <div class="p-6 rounded-2xl bg-primary/5 text-center">
+            <span class="material-symbols-outlined text-primary mb-3">eco</span>
+            <h3 class="font-bold text-sm uppercase tracking-widest mb-2">Sostenible</h3>
+            <p class="text-xs opacity-70 normal-case">Materiales nobles y respetuosos con el ambiente.</p>
+          </div>
+          <div class="p-6 rounded-2xl bg-primary/5 text-center">
+            <span class="material-symbols-outlined text-primary mb-3">auto_awesome</span>
+            <h3 class="font-bold text-sm uppercase tracking-widest mb-2">Exclusivo</h3>
+            <p class="text-xs opacity-70 normal-case">Colecciones limitadas con diseño de autor.</p>
+          </div>
+          <div class="p-6 rounded-2xl bg-primary/5 text-center">
+            <span class="material-symbols-outlined text-primary mb-3">volunteer_activism</span>
+            <h3 class="font-bold text-sm uppercase tracking-widest mb-2">Hecho a Mano</h3>
+            <p class="text-xs opacity-70 normal-case">Producción local con atención al detalle.</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Toast Notification -->
-  <div id="toast"
-    class="fixed top-8 left-1/2 -translate-x-1/2 z-[100] bg-slate-900 text-white px-6 py-3 rounded-full shadow-2xl transform -translate-y-20 opacity-0 transition-all duration-500 pointer-events-none flex items-center justify-center">
-    <span id="toast-msg" class="text-sm font-semibold tracking-wide"></span>
-  </div>
-
   <script>
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      const toastMsg = document.getElementById('toast-msg');
-      toastMsg.textContent = msg;
-      toast.classList.remove('-translate-y-20', 'opacity-0');
-      toast.classList.add('translate-y-0', 'opacity-100');
-      setTimeout(() => {
-        toast.classList.add('-translate-y-20', 'opacity-0');
-        toast.classList.remove('translate-y-0', 'opacity-100');
-      }, 3000);
+    function showAboutModal() {
+      const modal = document.getElementById('aboutModal');
+      modal.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10');
+      modal.classList.add('translate-y-0');
+      loadSettings();
     }
-  </script>
-
-  <script>
-    function showAboutModal() { const modal = document.getElementById('aboutModal'); const content = document.getElementById('aboutModalContent'); modal.classList.remove('opacity-0', 'pointer-events-none'); content.classList.remove('scale-95'); content.classList.add('scale-100'); }
-    function closeAboutModal() { const modal = document.getElementById('aboutModal'); const content = document.getElementById('aboutModalContent'); modal.classList.add('opacity-0', 'pointer-events-none'); content.classList.remove('scale-100'); content.classList.add('scale-95'); }
+    function closeAboutModal() {
+      const modal = document.getElementById('aboutModal');
+      modal.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10');
+      modal.classList.remove('translate-y-0');
+    }
     function openFavorites() { showFavModal(); }
     document.getElementById('aboutModal').addEventListener('click', function (e) { if (e.target === this) closeAboutModal(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeCartModal(); closeFavModal(); } });
@@ -288,6 +319,7 @@
     // State for size and color selection
     let selectedSize = null;
     let selectedColor = null;
+    let currentProductData = null;
 
     // Size selection handler
     function selectSize(btn) {
@@ -309,6 +341,17 @@
       });
       btn.classList.add('ring-4', 'ring-primary');
       selectedColor = colorName;
+
+      // Update image if variant exists
+      if (currentProductData && currentProductData.images && currentProductData.images.length > 0) {
+        const colorIdx = currentProductData.colors ? currentProductData.colors.indexOf(colorName) : -1;
+        if (colorIdx !== -1 && currentProductData.images[colorIdx]) {
+          document.getElementById('product-image').src = currentProductData.images[colorIdx];
+        } else if (currentProductData.images[0]) {
+          // Fallback to first image if no matching index
+          document.getElementById('product-image').src = currentProductData.images[0];
+        }
+      }
     }
 
     // try to load from server
@@ -344,15 +387,14 @@
       }
       if (products.products && Array.isArray(products.products)) products = products.products;
       const product = products.find(p => Number(p.id) === Number(productId));
-
       if (!product) {
         document.body.innerHTML = '<h1 class="text-center mt-20">Producto no encontrado</h1>';
         return;
       }
-
+      currentProductData = product;
       document.title = `Maleiwa | ${product.name}`;
       document.getElementById('product-name').textContent = product.name;
-      document.getElementById('product-image').src = product.image;
+      document.getElementById('product-image').src = product.image || (product.images && product.images[0]) || '';
       document.getElementById('product-price').textContent = product.price || '$0';
       document.getElementById('product-color').textContent = product.color || '';
       document.getElementById('product-material').textContent = product.material || '';
@@ -377,9 +419,8 @@
       // sizes
       const sizesEl = document.getElementById('product-sizes');
       if (sizesEl) {
-        if (product.sizes && Array.isArray(product.sizes) && product.sizes.length) {
-          sizesEl.innerHTML = product.sizes.map(sz => `<button class="w-12 h-12 border-2 border-slate-300 rounded-lg hover:border-primary transition-colors font-semibold" onclick="selectSize(this)">${sz}</button>`).join('');
-        }
+        const sizes = (product.sizes && product.sizes.length) ? product.sizes : ['Única'];
+        sizesEl.innerHTML = sizes.map(sz => `<button class="min-w-[3rem] h-12 px-3 border-2 border-slate-300 rounded-lg hover:border-primary transition-colors font-semibold" onclick="selectSize(this)">${sz}</button>`).join('');
       }
 
       // colors
@@ -393,58 +434,48 @@
         };
         const getCol = (c) => colorMap[c.toLowerCase()] || '#cbd5e1';
 
-        if (product.colors && Array.isArray(product.colors) && product.colors.length) {
-          colorsEl.innerHTML = product.colors.map(c => `
-            <button 
-              class="flex items-center gap-2 p-1 border-2 border-transparent rounded-lg hover:border-primary transition-all whitespace-nowrap"
-              onclick="selectColor(this, '${c.replace(/'/g, "\\\'")}')">
-              <span class="inline-block w-6 h-6 rounded-full border border-slate-400" style="background-color: ${getCol(c)}"></span>
-              <span class="text-sm font-medium px-1">${c}</span>
-            </button>`).join('');
-        }
+        const colors = (product.colors && product.colors.length) ? product.colors : [product.color || 'Estándar'];
+        colorsEl.innerHTML = colors.map(c => `
+          <button 
+            class="w-10 h-10 rounded-full border-4 border-slate-300 hover:border-primary transition-colors flex items-center justify-center overflow-hidden" 
+            onclick="selectColor(this, '${c}')" title="${c}">
+            <div class="w-full h-full shadow-inner" style="background-color: ${getCol(c)}"></div>
+          </button>
+        `).join('');
       }
     }
 
+    function parsePrice(val) {
+      if (typeof val === 'number') return val;
+      let s = String(val).replace(/[^0-9,.]/g, '');
+      if (s.includes(',') && s.includes('.')) return parseFloat(s.replace(/\./g, '').replace(',', '.'));
+      if (s.includes(',')) return parseFloat(s.replace(',', '.'));
+      if (s.includes('.')) {
+        const parts = s.split('.');
+        if (parts.length > 2 || parts[parts.length - 1].length === 3) return parseFloat(s.replace(/\./g, ''));
+      }
+      return parseFloat(s);
+    };
+
     function addToCart() {
-      if (!selectedSize) {
-        alert('Por favor, selecciona una talla');
+      if (!selectedSize || !selectedColor) {
+        showToast('Selecciona talla y color antes de agregar.', 'info');
         return;
       }
-      if (!selectedColor) {
-        alert('Por favor, selecciona un color');
-        return;
-      }
-
-      const productName = document.getElementById('product-name').textContent;
-      const priceText = document.getElementById('product-price').textContent || '$0';
-
-      const parsePrice = (val) => {
-        if (typeof val === 'number') return val;
-        let s = String(val).replace(/[^0-9,.]/g, '');
-        if (s.includes(',') && s.includes('.')) return parseFloat(s.replace(/\./g, '').replace(',', '.'));
-        if (s.includes(',')) return parseFloat(s.replace(',', '.'));
-        if (s.includes('.')) {
-          const parts = s.split('.');
-          if (parts.length > 2 || parts[parts.length - 1].length === 3) return parseFloat(s.replace(/\./g, ''));
-        }
-        return parseFloat(s);
-      };
-
-      const priceNum = parsePrice(priceText);
       const cart = getCart();
-
       const cartItem = {
         id: Date.now(),
-        name: productName,
-        price: priceNum,
+        name: currentProductData.name,
+        price: parsePrice(currentProductData.price),
+        image: currentProductData.image || (currentProductData.images && currentProductData.images[0]),
         qty: 1,
         size: selectedSize,
         color: selectedColor
       };
-
       cart.push(cartItem);
       saveCart(cart);
-      showToast(`${productName} añadido al carrito`);
+      showToast('¡Producto agregado al carrito!');
+      renderCart();
 
       // Reset selections
       selectedSize = null;
@@ -503,25 +534,45 @@
       const cart = getCart();
       const container = document.getElementById('cart-items');
       if (!container) return;
+
       if (cart.length === 0) {
-        container.innerHTML = '<p class="text-slate-600">Tu carrito está vacío.</p>';
+        container.innerHTML = `
+          <div class="h-full flex flex-col items-center justify-center text-center p-8 opacity-40">
+            <span class="material-symbols-outlined text-6xl mb-4">shopping_cart_off</span>
+            <p class="text-lg font-medium tracking-tight">Tu carrito está vacío</p>
+            <p class="text-sm">¡Agrega algo increíble para empezar!</p>
+          </div>
+        `;
         document.getElementById('cart-total').textContent = '$0';
         return;
       }
+
       container.innerHTML = cart.map(item => `
-    <div class="flex items-center justify-between py-3 border-b">
-      <div>
-        <div class="font-semibold text-sm">${item.name}</div>
-        <div class="text-[10px] text-slate-500 uppercase font-bold">${item.size} • ${item.color}</div>
-        <div class="text-sm text-primary font-bold">${formatPrice(item.price * (item.qty || 1))}</div>
-      </div>
-      <div class="flex items-center gap-2">
-        <button onclick="changeQty(${item.id}, -1)" class="px-2 py-1 bg-primary/10 rounded">-</button>
-        <span class="w-6 text-center text-sm font-bold">${item.qty}</span>
-        <button onclick="changeQty(${item.id}, 1)" class="px-2 py-1 bg-primary/10 rounded">+</button>
-      </div>
-    </div>
-  `).join('');
+        <div class="flex gap-4 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-primary/5 shadow-sm transition-all hover:border-primary/20">
+          <div class="w-20 h-24 bg-slate-100 dark:bg-slate-700 rounded-xl overflow-hidden shrink-0">
+            <img src="${item.image || 'logo.webp'}" class="w-full h-full object-cover" onerror="this.src='/store/logo.webp'">
+          </div>
+          <div class="flex-1 flex flex-col justify-between py-1 text-left">
+            <div>
+              <h4 class="font-bold text-slate-900 dark:text-slate-100 leading-tight">${item.name}</h4>
+              <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">${item.size || ''} ${item.color ? '• ' + item.color : ''}</p>
+            </div>
+            <div class="flex items-center justify-between mt-3 text-left">
+              <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
+                <button onclick="changeQty(${item.id}, -1)" class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white dark:hover:bg-slate-600 transition-colors text-slate-600 dark:text-slate-300">
+                  <span class="material-symbols-outlined text-sm font-bold">remove</span>
+                </button>
+                <span class="w-6 text-center text-sm font-bold">${item.qty}</span>
+                <button onclick="changeQty(${item.id}, 1)" class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white dark:hover:bg-slate-600 transition-colors text-slate-600 dark:text-slate-300">
+                  <span class="material-symbols-outlined text-sm font-bold">add</span>
+                </button>
+              </div>
+              <span class="font-bold text-primary">${formatPrice(item.price * (item.qty || 1))}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
       const total = cart.reduce((s, i) => s + (i.price * (i.qty || 1)), 0);
       document.getElementById('cart-total').textContent = formatPrice(total);
     }
@@ -539,26 +590,46 @@
     function showCartModal() {
       const modal = document.getElementById('cartModal');
       modal.classList.remove('opacity-0', 'pointer-events-none');
-      document.getElementById('cartModalContent').classList.remove('scale-95');
+      document.getElementById('cartModalContent').classList.remove('translate-x-full');
       renderCart();
     }
 
     function closeCartModal() {
       const modal = document.getElementById('cartModal');
-      modal.classList.add('opacity-0', 'pointer-events-none');
-      document.getElementById('cartModalContent').classList.add('scale-95');
+      document.getElementById('cartModalContent').classList.add('translate-x-full');
+      setTimeout(() => {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+      }, 300);
     }
+
+    let storeSettings = { whatsapp: '573046601648' };
+    async function loadSettings() {
+      try {
+        const res = await fetch('/api/settings');
+        const data = await res.json();
+        storeSettings = data;
+        if (data.aboutUsTitle) {
+          const titleElem = document.getElementById('aboutTitle');
+          if (titleElem) titleElem.textContent = data.aboutUsTitle;
+        }
+        if (data.aboutUsText) {
+          const textElem = document.getElementById('aboutText');
+          if (textElem) textElem.textContent = data.aboutUsText;
+        }
+      } catch (e) { console.error('Error loading settings', e); }
+    }
+    loadSettings();
 
     function checkout() {
       const cart = getCart();
-      if (!cart || cart.length === 0) { alert('Tu carrito está vacío.'); return; }
+      if (!cart || cart.length === 0) { showToast('Tu carrito está vacío.', 'info'); return; }
       const total = cart.reduce((s, i) => s + (i.price * (i.qty || 1)), 0);
       let text = 'Pedido Maleiwa:\n';
       cart.forEach(item => {
         text += `- ${item.qty} x ${item.name} (${item.size}, ${item.color}) - ${formatPrice(item.price * item.qty)}\n`;
       });
       text += `\nTotal: ${formatPrice(total)}`;
-      const phone = '573046601648';
+      const phone = storeSettings.whatsapp || '573046601648';
       const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
       window.location.href = waUrl;
     }
@@ -566,9 +637,46 @@
 
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCartModal(); });
 
+    // Inject cart modal
     const cartModalHTML = `
-<div id="cartModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">\n  <div id="cartModalContent" class="bg-background-light dark:bg-background-dark rounded-2xl p-6 max-w-md mx-4 shadow-2xl transform scale-95 transition-transform duration-300">\n    <div class="flex flex-col">\n      <div class="flex items-center justify-between mb-4">\n        <h3 class="text-lg font-bold">Tu Carrito</h3>\n        <button onclick="closeCartModal()" class="text-slate-500">Cerrar</button>\n      </div>\n      <div id="cart-items" class="mb-4"></div>\n      <div class="flex items-center justify-between font-bold mb-4">Total: <span id="cart-total">$0</span></div>\n      <div class="flex gap-2">\n        <button onclick="checkout()" class="flex-1 py-3 bg-primary text-white rounded-lg">Pagar</button>\n        <button onclick="clearCart()" class="py-3 px-4 border rounded-lg">Vaciar</button>\n      </div>\n    </div>\n  </div>\n</div>\n`;
+<div id="cartModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] transition-opacity duration-300 opacity-0 pointer-events-none">
+  <div id="cartModalContent" class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-background-light dark:bg-background-dark shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+    <!-- Header -->
+    <div class="px-6 py-6 border-b border-primary/10 flex items-center justify-between bg-primary/5">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary">shopping_bag</span>
+        <h3 class="text-xl font-bold tracking-tight">Tu Carrito</h3>
+      </div>
+      <button onclick="closeCartModal()" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-primary transition-colors hover:bg-primary/10">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    
+    <!-- Items Area -->
+    <div id="cart-items" class="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
+    </div>
+
+    <!-- Footer -->
+    <div class="p-6 bg-slate-50 dark:bg-slate-900 border-t border-primary/10 pb-safe">
+      <div class="flex items-center justify-between mb-6">
+        <span class="text-slate-500 font-semibold uppercase tracking-wider text-xs">Total del pedido</span>
+        <span id="cart-total" class="text-2xl font-black text-primary">$0</span>
+      </div>
+      <div class="flex flex-col gap-3">
+        <button onclick="checkout()" class="w-full py-4 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 transition-transform active:scale-95 flex items-center justify-center gap-2">
+          Finalizar Compra
+          <span class="material-symbols-outlined text-sm font-bold">arrow_forward</span>
+        </button>
+        <button onclick="clearCart()" class="w-full py-3 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors text-sm">
+          Vaciar Carrito
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
     document.body.insertAdjacentHTML('beforeend', cartModalHTML);
+    document.getElementById('cartModal').addEventListener('click', (e) => { if (e.target.id === 'cartModal') closeCartModal(); });
 
     // initialize cart count on load
     document.getElementById('cart-count').textContent = localStorage.getItem('cart-count') || '0';
@@ -631,8 +739,24 @@
 `;
     document.body.insertAdjacentHTML('beforeend', favModalHTML);
     document.getElementById('favModal').addEventListener('click', (e) => { if (e.target.id === 'favModal') closeFavModal(); });
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = 'toast show';
+      const icon = type === 'success' ? 'check_circle' : 'info';
+      toast.innerHTML = `<span class="material-symbols-outlined text-primary">${icon}</span><span class="font-bold text-sm tracking-tight">${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 500);
+      }, 3000);
+    }
   </script>
 
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
 </body>
 
 </html>

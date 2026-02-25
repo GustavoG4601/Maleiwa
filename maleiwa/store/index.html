@@ -40,15 +40,46 @@
     <style>
         body {
             font-family: 'Manrope', sans-serif;
+            min-height: max(884px, 100dvh);
         }
 
         .hero-gradient {
             background: linear-gradient(180deg, rgba(33, 25, 17, 0) 0%, rgba(33, 25, 17, 0.4) 100%);
         }
-    </style>
-    <style>
-        body {
-            min-height: max(884px, 100dvh);
+
+        /* Toast Styles */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: white;
+            color: #211911;
+            padding: 16px 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            pointer-events: auto;
+            border-left: 4px solid #d2781e;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .dark .toast {
+            background: #2d2419;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         }
     </style>
 </head>
@@ -159,19 +190,18 @@
                     <span class="text-[9px] font-bold tracking-tighter uppercase">Explorar</span>
                 </a>
                 <div class="relative -mt-10">
-                    <button id="aboutButton" onclick="showAboutModal()" aria-label="Acerca de Maleiwa"
+                    <button id="favButton" onclick="openFavorites()" aria-label="Favoritos"
                         class="bg-primary p-3 rounded-full shadow-lg shadow-primary/30 border-4 border-background-light dark:border-background-dark flex items-center justify-center">
-                        <span class="material-symbols-outlined text-white text-2xl">info</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path
+                                d="M12 21s-7.5-4.9-9.1-7.1C1.6 11.5 3.1 7.5 6.5 6.1 8.2 5.4 10 6 11 7.2c1-1.2 2.8-1.8 4.5-1.1 3.4 1.4 4.9 5.4 3.6 7.8C19.5 16.1 12 21 12 21z" />
+                        </svg>
                     </button>
                 </div>
                 <a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-600" href="#"
-                    onclick="openFavorites()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                        fill="currentColor">
-                        <path
-                            d="M12 21s-7.5-4.9-9.1-7.1C1.6 11.5 3.1 7.5 6.5 6.1 8.2 5.4 10 6 11 7.2c1-1.2 2.8-1.8 4.5-1.1 3.4 1.4 4.9 5.4 3.6 7.8C19.5 16.1 12 21 12 21z" />
-                    </svg>
-                    <span class="text-[9px] font-bold tracking-tighter uppercase">Favoritos</span>
+                    onclick="showAboutModal()">
+                    <span class="material-symbols-outlined text-2xl">info</span>
+                    <span class="text-[9px] font-bold tracking-tighter uppercase">Nosotros</span>
                 </a>
                 <a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-600" href="/store/admin.html">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
@@ -182,26 +212,42 @@
                 </a>
             </div>
         </nav>
-        <!-- About Modal -->
         <div id="aboutModal"
-            class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
-            <div class="bg-background-light dark:bg-background-dark rounded-2xl p-6 max-w-lg mx-4 shadow-2xl transform scale-95 transition-transform duration-300"
-                id="aboutModalContent">
-                <div class="flex flex-col items-center text-center">
-                    <div class="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                        <span class="material-symbols-outlined text-primary text-3xl">info</span>
-                    </div>
-                    <h2 class="text-2xl font-bold mb-2 text-slate-900 dark:text-slate-100">¿Quiénes somos?</h2>
-                    <p class="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
-                        Maleiwa es una marca de moda consciente y minimalista inspirada en la naturaleza. Nuestras
-                        piezas buscan conectar con
-                        las raíces, texturas y colores orgánicos, priorizando materiales responsables y colecciones
-                        limitadas.
-                    </p>
-                    <button onclick="closeAboutModal()"
-                        class="w-full py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors">
-                        Cerrar
+            class="fixed inset-0 bg-background-light dark:bg-background-dark z-[60] opacity-0 pointer-events-none transition-all duration-500 transform translate-y-10">
+            <div class="h-full w-full flex flex-col p-8 overflow-y-auto">
+                <div class="flex justify-end mb-8">
+                    <button onclick="closeAboutModal()" class="p-2 rounded-full bg-primary/10 text-primary">
+                        <span class="material-symbols-outlined">close</span>
                     </button>
+                </div>
+                <div class="flex flex-col items-center max-w-2xl mx-auto">
+                    <div class="w-24 h-24 mb-10 overflow-hidden rounded-full shadow-2xl ring-4 ring-primary/20">
+                        <img src="logo.webp" class="w-full h-full object-contain p-4" alt="Maleiwa">
+                    </div>
+                    <h2 class="text-4xl font-bold mb-6 text-slate-900 dark:text-slate-100 tracking-tight"
+                        id="aboutTitle">¿Quiénes somos?</h2>
+                    <div class="w-12 h-1 bg-primary mb-10 rounded-full"></div>
+                    <p class="text-xl text-slate-600 dark:text-slate-400 mb-12 leading-relaxed text-center font-light italic"
+                        id="aboutText">
+                        Maleiwa es una marca de moda consciente y minimalista inspirada en la naturaleza.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full mt-8">
+                        <div class="p-6 rounded-2xl bg-primary/5 text-center">
+                            <span class="material-symbols-outlined text-primary mb-3">eco</span>
+                            <h3 class="font-bold text-sm uppercase tracking-widest mb-2">Sostenible</h3>
+                            <p class="text-xs opacity-70">Materiales nobles y respetuosos con el ambiente.</p>
+                        </div>
+                        <div class="p-6 rounded-2xl bg-primary/5 text-center">
+                            <span class="material-symbols-outlined text-primary mb-3">auto_awesome</span>
+                            <h3 class="font-bold text-sm uppercase tracking-widest mb-2">Exclusivo</h3>
+                            <p class="text-xs opacity-70">Colecciones limitadas con diseño de autor.</p>
+                        </div>
+                        <div class="p-6 rounded-2xl bg-primary/5 text-center">
+                            <span class="material-symbols-outlined text-primary mb-3">volunteer_activism</span>
+                            <h3 class="font-bold text-sm uppercase tracking-widest mb-2">Hecho a Mano</h3>
+                            <p class="text-xs opacity-70">Producción local con atención al detalle.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -209,18 +255,19 @@
         <script>
             function showAboutModal() {
                 const modal = document.getElementById('aboutModal');
-                const content = document.getElementById('aboutModalContent');
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-                content.classList.remove('scale-95');
-                content.classList.add('scale-100');
+                if (modal) {
+                    modal.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10');
+                    modal.classList.add('translate-y-0');
+                    loadSettings();
+                }
             }
 
             function closeAboutModal() {
                 const modal = document.getElementById('aboutModal');
-                const content = document.getElementById('aboutModalContent');
-                modal.classList.add('opacity-0', 'pointer-events-none');
-                content.classList.remove('scale-100');
-                content.classList.add('scale-95');
+                if (modal) {
+                    modal.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10');
+                    modal.classList.remove('translate-y-0');
+                }
             }
 
             // Cerrar modal al hacer click fuera del contenido
@@ -246,36 +293,140 @@
         </script>
 
     </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script>
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast flex items-center gap-3';
+
+            const icon = type === 'success' ? 'check_circle' : 'info';
+
+            toast.innerHTML = `
+                <span class="material-symbols-outlined text-primary">${icon}</span>
+                <span class="font-bold text-sm tracking-tight">${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            // Trigger animation
+            setTimeout(() => toast.classList.add('show'), 100);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+    </script>
 </body>
 
 </html>
 
 <script>
     // Cart utilities for store index
+    function formatPrice(val) {
+        if (typeof val === 'number') {
+            return '$' + val.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+        return val;
+    }
+
     function getCart() { try { return JSON.parse(localStorage.getItem('maleiwa_cart') || '[]'); } catch (e) { return []; } }
-    function saveCart(cart) { localStorage.setItem('maleiwa_cart', JSON.stringify(cart)); const total = cart.reduce((s, i) => s + (i.qty || 1), 0); localStorage.setItem('cart-count', String(total)); const el = document.getElementById('cart-count'); if (el) el.textContent = total; }
+    function saveCart(cart) {
+        localStorage.setItem('maleiwa_cart', JSON.stringify(cart));
+        const total = cart.reduce((s, i) => s + (i.qty || 1), 0);
+        localStorage.setItem('cart-count', String(total));
+        const el = document.getElementById('cart-count');
+        if (el) el.textContent = total;
+    }
 
     function renderCart() {
         const cart = getCart();
         const container = document.getElementById('cart-items');
         if (!container) return;
-        if (cart.length === 0) { container.innerHTML = '<p class="text-slate-600">Tu carrito está vacío.</p>'; document.getElementById('cart-total').textContent = '$0.00'; return; }
-        container.innerHTML = cart.map(item => `\n    <div class="flex items-center justify-between py-3 border-b">\n      <div>\n        <div class="font-semibold">${item.name}</div>\n        <div class="text-sm text-slate-500">${item.qty} × $${item.price.toFixed(2)}</div>\n      </div>\n      <div class="flex items-center gap-2">\n        <button onclick="changeQty(${item.id}, -1)" class="px-2 py-1 bg-primary/10 rounded">-</button>\n        <span class="w-6 text-center">${item.qty}</span>\n        <button onclick="changeQty(${item.id}, 1)" class="px-2 py-1 bg-primary/10 rounded">+</button>\n      </div>\n    </div>\n  `).join('');
+
+        if (cart.length === 0) {
+            container.innerHTML = `
+                <div class="h-full flex flex-col items-center justify-center text-center p-8 opacity-40">
+                    <span class="material-symbols-outlined text-6xl mb-4">shopping_cart_off</span>
+                    <p class="text-lg font-medium tracking-tight">Tu carrito está vacío</p>
+                    <p class="text-sm">¡Agrega algo increíble para empezar!</p>
+                </div>
+            `;
+            document.getElementById('cart-total').textContent = '$0';
+            return;
+        }
+
+        container.innerHTML = cart.map(item => `
+            <div class="flex gap-4 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-primary/5 shadow-sm transition-all hover:border-primary/20">
+                <div class="w-20 h-24 bg-slate-100 dark:bg-slate-700 rounded-xl overflow-hidden shrink-0">
+                    <img src="${item.image || 'logo.webp'}" class="w-full h-full object-cover" onerror="this.src='/store/logo.webp'">
+                </div>
+                <div class="flex-1 flex flex-col justify-between py-1">
+                    <div>
+                        <h4 class="font-bold text-slate-900 dark:text-slate-100 leading-tight">${item.name}</h4>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">${item.size || ''} ${item.color ? '• ' + item.color : ''}</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-3">
+                        <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
+                            <button onclick="changeQty(${item.id}, -1)" class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white dark:hover:bg-slate-600 transition-colors text-slate-600 dark:text-slate-300">
+                                <span class="material-symbols-outlined text-sm font-bold">remove</span>
+                            </button>
+                            <span class="w-6 text-center text-sm font-bold">${item.qty}</span>
+                            <button onclick="changeQty(${item.id}, 1)" class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white dark:hover:bg-slate-600 transition-colors text-slate-600 dark:text-slate-300">
+                                <span class="material-symbols-outlined text-sm font-bold">add</span>
+                            </button>
+                        </div>
+                        <span class="font-bold text-primary">${formatPrice(item.price * (item.qty || 1))}</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
         const total = cart.reduce((s, i) => s + (i.price * (i.qty || 1)), 0);
-        document.getElementById('cart-total').textContent = `$${total.toFixed(2)}`;
+        document.getElementById('cart-total').textContent = formatPrice(total);
     }
 
     function changeQty(id, delta) { const cart = getCart(); const idx = cart.findIndex(i => i.id === id); if (idx === -1) return; cart[idx].qty = (cart[idx].qty || 1) + delta; if (cart[idx].qty <= 0) cart.splice(idx, 1); saveCart(cart); renderCart(); }
 
-    function showCartModal() { const modal = document.getElementById('cartModal'); if (!modal) return; modal.classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('cartModalContent').classList.remove('scale-95'); renderCart(); }
-    function closeCartModal() { const modal = document.getElementById('cartModal'); if (!modal) return; modal.classList.add('opacity-0', 'pointer-events-none'); document.getElementById('cartModalContent').classList.add('scale-95'); }
+    function showCartModal() {
+        const modal = document.getElementById('cartModal');
+        if (!modal) return;
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        document.getElementById('cartModalContent').classList.remove('translate-x-full');
+        renderCart();
+    }
+    function closeCartModal() {
+        const modal = document.getElementById('cartModal');
+        if (!modal) return;
+        document.getElementById('cartModalContent').classList.add('translate-x-full');
+        setTimeout(() => {
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }, 300);
+    }
+
+    let storeSettings = { whatsapp: '573046601648' };
+    async function loadSettings() {
+        try {
+            const res = await fetch('/api/settings');
+            const data = await res.json();
+            storeSettings = data;
+            if (data.aboutUsTitle) document.getElementById('aboutTitle').textContent = data.aboutUsTitle;
+            if (data.aboutUsText) document.getElementById('aboutText').textContent = data.aboutUsText;
+        } catch (e) { console.error('Error loading settings', e); }
+    }
+    loadSettings();
 
     function checkout() {
         const cart = getCart(); if (!cart || cart.length === 0) { alert('Tu carrito está vacío.'); return; }
         const total = cart.reduce((s, i) => s + (i.price * (i.qty || 1)), 0);
-        let text = 'Pedido Maleiwa:\n'; cart.forEach(item => { text += `- ${item.qty} x ${item.name} - $${(item.price * item.qty).toFixed(2)}\n`; });
-        text += `\nTotal: $${total.toFixed(2)}`;
-        const phone = '573046601648';
+        let text = 'Pedido Maleiwa:\n'; cart.forEach(item => { text += `- ${item.qty} x ${item.name} - ${formatPrice(item.price * item.qty)}\n`; });
+        text += `\nTotal: ${formatPrice(total)}`;
+        const phone = storeSettings.whatsapp || '573046601648';
         const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
         window.location.href = waUrl;
     }
@@ -284,8 +435,44 @@
 
     // Inject cart modal
     const cartModalHTML = `
-<div id="cartModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">\n  <div id="cartModalContent" class="bg-background-light dark:bg-background-dark rounded-2xl p-6 max-w-md mx-4 shadow-2xl transform scale-95 transition-transform duration-300">\n    <div class="flex flex-col">\n      <div class="flex items-center justify-between mb-4">\n        <h3 class="text-lg font-bold">Tu Carrito</h3>\n        <button onclick="closeCartModal()" class="text-slate-500">Cerrar</button>\n      </div>\n      <div id="cart-items" class="mb-4"></div>\n      <div class="flex items-center justify-between font-bold mb-4">Total: <span id="cart-total">$0.00</span></div>\n      <div class="flex gap-2">\n        <button onclick="checkout()" class="flex-1 py-3 bg-primary text-white rounded-lg">Pagar</button>\n        <button onclick="clearCart()" class="py-3 px-4 border rounded-lg">Vaciar</button>\n      </div>\n    </div>\n  </div>\n</div>\n`;
+<div id="cartModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] transition-opacity duration-300 opacity-0 pointer-events-none">
+  <div id="cartModalContent" class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-background-light dark:bg-background-dark shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+    <!-- Header -->
+    <div class="px-6 py-6 border-b border-primary/10 flex items-center justify-between bg-primary/5">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary">shopping_bag</span>
+        <h3 class="text-xl font-bold tracking-tight">Tu Carrito</h3>
+      </div>
+      <button onclick="closeCartModal()" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-primary transition-colors hover:bg-primary/10">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    
+    <!-- Items Area -->
+    <div id="cart-items" class="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
+    </div>
+
+    <!-- Footer -->
+    <div class="p-6 bg-slate-50 dark:bg-slate-900 border-t border-primary/10 pb-safe">
+      <div class="flex items-center justify-between mb-6">
+        <span class="text-slate-500 font-semibold uppercase tracking-wider text-xs">Total del pedido</span>
+        <span id="cart-total" class="text-2xl font-black text-primary">$0.00</span>
+      </div>
+      <div class="flex flex-col gap-3">
+        <button onclick="checkout()" class="w-full py-4 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 transition-transform active:scale-95 flex items-center justify-center gap-2">
+          Finalizar Compra
+          <span class="material-symbols-outlined text-sm font-bold">arrow_forward</span>
+        </button>
+        <button onclick="clearCart()" class="w-full py-3 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors text-sm">
+          Vaciar Carrito
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
     document.body.insertAdjacentHTML('beforeend', cartModalHTML);
+    document.getElementById('cartModal').addEventListener('click', (e) => { if (e.target.id === 'cartModal') closeCartModal(); });
 
     // initialize cart count on load
     const ccEl = document.getElementById('cart-count'); if (ccEl) ccEl.textContent = localStorage.getItem('cart-count') || '0';
