@@ -185,12 +185,9 @@ app.post('/api/collections', authMiddleware, (req, res) => {
   try {
     const { name, title, desc } = req.body || {};
     if (!name) return res.status(400).json({ ok: false, error: 'Name required' });
-
     const raw = fs.readFileSync(PRODUCTS_FILE, 'utf8');
     const data = JSON.parse(raw || '{}');
-
     if (data[name]) return res.json({ ok: false, error: 'Collection already exists' });
-
     data[name] = { title: title || name, desc: desc || '', products: [] };
     fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(data, null, 2), 'utf8');
     res.json({ ok: true });
@@ -206,12 +203,63 @@ app.delete('/api/collections/:name', authMiddleware, (req, res) => {
     const { name } = req.params;
     const raw = fs.readFileSync(PRODUCTS_FILE, 'utf8');
     const data = JSON.parse(raw || '{}');
-
     if (!data[name]) return res.status(404).json({ ok: false, error: 'Not found' });
-
     delete data[name];
     fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(data, null, 2), 'utf8');
     res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false });
+  }
+});
+
+const HOME_FILE = path.join(DATA_DIR, 'home.json');
+if (!fs.existsSync(HOME_FILE)) {
+  fs.writeFileSync(HOME_FILE, JSON.stringify({
+    heroSubtitle: "Edición Limitada",
+    heroTitleMain: "Nueva Colección",
+    heroTitleAccent: "Esencia Caribe",
+    heroDescription: "Inspirada en la naturaleza",
+    actionDescription: "\"Texturas orgánicas y tonos que conectan con nuestras raíces más profundas.\"",
+    actionButtonText: "Explorar Colección",
+    teaser1Text: "Texturas",
+    teaser2Text: "Siluetas"
+  }, null, 2));
+}
+
+app.get('/api/home', (req, res) => {
+  try {
+    const raw = fs.readFileSync(HOME_FILE, 'utf8');
+    res.json(JSON.parse(raw));
+  } catch (e) {
+    res.status(500).json({ ok: false });
+  }
+});
+
+app.post('/api/home', authMiddleware, upload.fields([
+  { name: 'heroImage', maxCount: 1 },
+  { name: 'teaser1Image', maxCount: 1 },
+  { name: 'teaser2Image', maxCount: 1 }
+]), (req, res) => {
+  try {
+    const body = req.body || {};
+    const raw = fs.readFileSync(HOME_FILE, 'utf8');
+    const data = JSON.parse(raw || '{}');
+
+    // Update text fields
+    Object.keys(body).forEach(key => {
+      data[key] = body[key];
+    });
+
+    // Handle uploaded files
+    if (req.files) {
+      if (req.files.heroImage) data.heroImage = `/store/uploads/${req.files.heroImage[0].filename}`;
+      if (req.files.teaser1Image) data.teaser1Image = `/store/uploads/${req.files.teaser1Image[0].filename}`;
+      if (req.files.teaser2Image) data.teaser2Image = `/store/uploads/${req.files.teaser2Image[0].filename}`;
+    }
+
+    fs.writeFileSync(HOME_FILE, JSON.stringify(data, null, 2), 'utf8');
+    res.json({ ok: true, data });
   } catch (e) {
     console.error(e);
     res.status(500).json({ ok: false });

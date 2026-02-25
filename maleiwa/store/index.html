@@ -92,31 +92,33 @@
         <main class="flex-1 flex flex-col px-4 @container">
             <div
                 class="relative w-full h-[70vh] max-h-[600px] @[768px]:h-[500px] @[1000px]:h-[450px] overflow-hidden rounded-2xl shadow-2xl group">
-                <img src="Primer.webp" alt="Primera Colección"
+                <img id="heroImage" src="Primer.webp" alt="Primera Colección"
                     class="absolute inset-0 w-full h-full object-cover object-[center_35%] transition-transform duration-1000 group-hover:scale-110">
                 <div class="absolute inset-0 hero-gradient"></div>
                 <div class="absolute bottom-0 left-0 right-0 p-8 @[768px]:p-12 flex flex-col items-start gap-3">
-                    <span
+                    <span id="heroSubtitle"
                         class="inline-block px-4 py-1.5 bg-primary/20 backdrop-blur-md border border-primary/30 rounded-full text-[10px] @[768px]:text-xs font-bold tracking-[0.2em] uppercase text-white">Edición
                         Limitada</span>
                     <h2
                         class="text-white text-4xl @[480px]:text-5xl @[768px]:text-6xl font-light tracking-tight leading-[0.9]">
-                        Nueva Colección <br />
-                        <span class="font-bold text-primary"> Esencia Caribe</span>
+                        <span id="heroTitleMain">Nueva Colección</span> <br />
+                        <span id="heroTitleAccent" class="font-bold text-primary"> Esencia Caribe</span>
                     </h2>
-                    <p class="text-slate-200 text-lg @[768px]:text-xl font-light tracking-wide mt-2">Inspirada en la
+                    <p id="heroDescription"
+                        class="text-slate-200 text-lg @[768px]:text-xl font-light tracking-wide mt-2">Inspirada en la
                         naturaleza</p>
                 </div>
             </div>
             <!-- Action Area -->
             <div class="mt-8 mb-12 flex flex-col items-center text-center space-y-6">
                 <div class="w-12 h-[1px] bg-primary/40"></div>
-                <p class="max-w-xs text-sm text-slate-600 dark:text-slate-400 leading-relaxed italic">
+                <p id="actionDescription"
+                    class="max-w-xs text-sm text-slate-600 dark:text-slate-400 leading-relaxed italic">
                     "Texturas orgánicas y tonos que conectan con nuestras raíces más profundas."
                 </p>
                 <a href="collection.html?id=esencia"
                     class="group relative flex items-center justify-center gap-3 bg-primary text-white px-10 py-4 rounded-full font-bold tracking-widest uppercase text-sm shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all">
-                    <span>Explorar Colección</span>
+                    <span id="actionButtonText">Explorar Colección</span>
                     <span
                         class="material-symbols-outlined text-lg transition-transform group-hover:translate-x-1">arrow_forward</span>
                 </a>
@@ -125,15 +127,15 @@
             <section class="grid grid-cols-2 gap-4 mb-24">
                 <div class="flex flex-col gap-2">
                     <div class="aspect-square rounded-lg bg-primary/5 overflow-hidden">
-                        <img class="w-full h-full object-cover" src="Texturas.webp" alt="Texturas">
+                        <img id="teaser1Image" class="w-full h-full object-cover" src="Texturas.webp" alt="Texturas">
                     </div>
-                    <p class="text-[11px] font-bold uppercase tracking-wider opacity-60">Texturas</p>
+                    <p id="teaser1Text" class="text-[11px] font-bold uppercase tracking-wider opacity-60">Texturas</p>
                 </div>
                 <div class="flex flex-col gap-2">
                     <div class="aspect-square rounded-lg bg-primary/5 overflow-hidden">
-                        <img class="w-full h-full object-cover" src="arbol.webp" alt="Siluetas">
+                        <img id="teaser2Image" class="w-full h-full object-cover" src="arbol.webp" alt="Siluetas">
                     </div>
-                    <p class="text-[11px] font-bold uppercase tracking-wider opacity-60">Siluetas</p>
+                    <p id="teaser2Text" class="text-[11px] font-bold uppercase tracking-wider opacity-60">Siluetas</p>
                 </div>
             </section>
         </main>
@@ -341,4 +343,26 @@
     document.body.insertAdjacentHTML('beforeend', favModalHTML);
     document.getElementById('favModal').addEventListener('click', (e) => { if (e.target.id === 'favModal') closeFavModal(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeCartModal(); closeFavModal(); } });
+
+    // Load home config
+    async function initHome() {
+        try {
+            const res = await fetch('/api/home');
+            const data = await res.json();
+            if (data.heroSubtitle) document.getElementById('heroSubtitle').textContent = data.heroSubtitle;
+            if (data.heroTitleMain) document.getElementById('heroTitleMain').textContent = data.heroTitleMain;
+            if (data.heroTitleAccent) document.getElementById('heroTitleAccent').textContent = data.heroTitleAccent;
+            if (data.heroDescription) document.getElementById('heroDescription').textContent = data.heroDescription;
+            if (data.actionDescription) document.getElementById('actionDescription').textContent = data.actionDescription;
+            if (data.actionButtonText) document.getElementById('actionButtonText').textContent = data.actionButtonText;
+            if (data.teaser1Text) document.getElementById('teaser1Text').textContent = data.teaser1Text;
+            if (data.teaser2Text) document.getElementById('teaser2Text').textContent = data.teaser2Text;
+            if (data.heroImage) document.getElementById('heroImage').src = data.heroImage;
+            if (data.teaser1Image) document.getElementById('teaser1Image').src = data.teaser1Image;
+            if (data.teaser2Image) document.getElementById('teaser2Image').src = data.teaser2Image;
+        } catch (e) {
+            console.error('Error loading home config', e);
+        }
+    }
+    initHome();
 </script>

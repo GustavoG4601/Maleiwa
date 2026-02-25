@@ -18,6 +18,16 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
     rel="stylesheet" />
+  <style>
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
 </head>
 
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
@@ -59,15 +69,19 @@
       <div id="adminArea"
         class="hidden mt-6 bg-background-light dark:bg-background-dark rounded-xl p-6 border border-primary/10 shadow-sm">
         <!-- Tabs -->
-        <div class="flex gap-4 mb-6 border-b border-primary/10">
-          <button id="tabAdd" class="px-4 py-3 border-b-2 border-primary font-semibold cursor-pointer"
+        <div
+          class="flex gap-2 mb-6 border-b border-primary/10 overflow-x-auto no-scrollbar whitespace-nowrap -mx-6 px-6">
+          <button id="tabAdd" class="px-4 py-3 border-b-2 border-primary font-semibold cursor-pointer shrink-0"
             onclick="showTab('add')">Agregar Producto</button>
           <button id="tabList"
-            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer"
+            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
             onclick="showTab('list')">Listar Productos</button>
           <button id="tabColls"
-            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer"
+            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
             onclick="showTab('colls')">Colecciones</button>
+          <button id="tabHome"
+            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
+            onclick="showTab('home')">Editar Inicio</button>
         </div>
 
         <!-- Tab: Agregar/Editar Producto -->
@@ -142,6 +156,59 @@
             <p class="text-slate-600">Cargando colecciones...</p>
           </div>
         </div>
+
+        <!-- Tab: Editar Inicio -->
+        <div id="tabHomeContent" class="hidden">
+          <h2 class="text-xl font-semibold mb-4">Editar Inicio</h2>
+          <form id="homeForm" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label class="block">Subtítulo Hero (badge)
+                <input id="heroSubtitle" class="w-full p-3 border rounded" placeholder="Edición Limitada">
+              </label>
+              <label class="block">Título Principal Hero
+                <input id="heroTitleMain" class="w-full p-3 border rounded" placeholder="Nueva Colección">
+              </label>
+              <label class="block">Título Acento Hero
+                <input id="heroTitleAccent" class="w-full p-3 border rounded" placeholder="Esencia Caribe">
+              </label>
+              <label class="block">Descripción Hero
+                <input id="heroDescription" class="w-full p-3 border rounded" placeholder="Inspirada en la naturaleza">
+              </label>
+              <label class="block md:col-span-2">Cita / Descripción Acción
+                <textarea id="actionDescription" class="w-full p-3 border rounded" rows="2"
+                  placeholder="Texturas orgánicas..."></textarea>
+              </label>
+              <label class="block">Texto Botón Acción
+                <input id="actionButtonText" class="w-full p-3 border rounded" placeholder="Explorar Colección">
+              </label>
+              <div class="md:col-span-2 grid grid-cols-2 gap-4">
+                <label class="block">Teaser 1 (Texto)
+                  <input id="teaser1Text" class="w-full p-3 border rounded" placeholder="Texturas">
+                </label>
+                <label class="block">Teaser 2 (Texto)
+                  <input id="teaser2Text" class="w-full p-3 border rounded" placeholder="Siluetas">
+                </label>
+              </div>
+              <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-primary/10 pt-4 mt-2">
+                <label class="block">Imagen Hero
+                  <input type="file" id="heroImageInput"
+                    class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90">
+                </label>
+                <label class="block">Imagen Teaser 1
+                  <input type="file" id="teaser1ImageInput"
+                    class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90">
+                </label>
+                <label class="block">Imagen Teaser 2
+                  <input type="file" id="teaser2ImageInput"
+                    class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90">
+                </label>
+              </div>
+            </div>
+            <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-semibold">Guardar
+              Cambios</button>
+          </form>
+          <div id="homeResult" class="mt-4 text-slate-600"></div>
+        </div>
       </div>
     </main>
 
@@ -203,6 +270,7 @@
       document.getElementById('tabAddContent').classList.toggle('hidden', tabName !== 'add');
       document.getElementById('tabListContent').classList.toggle('hidden', tabName !== 'list');
       document.getElementById('tabCollsContent').classList.toggle('hidden', tabName !== 'colls');
+      document.getElementById('tabHomeContent').classList.toggle('hidden', tabName !== 'home');
 
       document.getElementById('tabAdd').classList.toggle('border-primary', tabName === 'add');
       document.getElementById('tabAdd').classList.toggle('border-transparent', tabName !== 'add');
@@ -216,10 +284,67 @@
       document.getElementById('tabColls').classList.toggle('border-transparent', tabName !== 'colls');
       document.getElementById('tabColls').classList.toggle('text-slate-600', tabName !== 'colls');
 
+      document.getElementById('tabHome').classList.toggle('border-primary', tabName === 'home');
+      document.getElementById('tabHome').classList.toggle('border-transparent', tabName !== 'home');
+      document.getElementById('tabHome').classList.toggle('text-slate-600', tabName !== 'home');
+
       if (tabName === 'list') loadProducts();
       if (tabName === 'colls') loadCollections();
       if (tabName === 'add') populateCollectionDropdown();
+      if (tabName === 'home') loadHomeConfig();
     }
+
+    async function loadHomeConfig() {
+      try {
+        const res = await fetch('/api/home');
+        const data = await res.json();
+        document.getElementById('heroSubtitle').value = data.heroSubtitle || '';
+        document.getElementById('heroTitleMain').value = data.heroTitleMain || '';
+        document.getElementById('heroTitleAccent').value = data.heroTitleAccent || '';
+        document.getElementById('heroDescription').value = data.heroDescription || '';
+        document.getElementById('actionDescription').value = data.actionDescription || '';
+        document.getElementById('actionButtonText').value = data.actionButtonText || '';
+        document.getElementById('teaser1Text').value = data.teaser1Text || '';
+        document.getElementById('teaser2Text').value = data.teaser2Text || '';
+      } catch (e) {
+        console.error('Error loading home config', e);
+      }
+    }
+
+    document.getElementById('homeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData();
+      fd.append('heroSubtitle', document.getElementById('heroSubtitle').value);
+      fd.append('heroTitleMain', document.getElementById('heroTitleMain').value);
+      fd.append('heroTitleAccent', document.getElementById('heroTitleAccent').value);
+      fd.append('heroDescription', document.getElementById('heroDescription').value);
+      fd.append('actionDescription', document.getElementById('actionDescription').value);
+      fd.append('actionButtonText', document.getElementById('actionButtonText').value);
+      fd.append('teaser1Text', document.getElementById('teaser1Text').value);
+      fd.append('teaser2Text', document.getElementById('teaser2Text').value);
+
+      const heroFile = document.getElementById('heroImageInput').files[0];
+      const teaser1File = document.getElementById('teaser1ImageInput').files[0];
+      const teaser2File = document.getElementById('teaser2ImageInput').files[0];
+
+      if (heroFile) fd.append('heroImage', heroFile);
+      if (teaser1File) fd.append('teaser1Image', teaser1File);
+      if (teaser2File) fd.append('teaser2Image', teaser2File);
+
+      try {
+        const res = await fetch('/api/home', { method: 'POST', body: fd, credentials: 'include' });
+        const r = await res.json();
+        if (r.ok) {
+          alert('Configuración de inicio guardada');
+          document.getElementById('homeResult').innerText = 'Guardado con éxito.';
+          location.reload(); // Reload to show new images if any
+        } else {
+          alert('Error al guardar');
+        }
+      } catch (e) {
+        alert('Error de conexión');
+      }
+    });
 
     async function loadCollections() {
       try {
@@ -242,12 +367,12 @@
       for (const id in data) {
         const c = data[id];
         html += `
-          <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-primary/10">
-            <div>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-primary/10 gap-3">
+            <div class="flex-1">
               <p class="font-semibold">${c.title} <span class="text-xs text-slate-500 font-normal">(${id})</span></p>
               <p class="text-xs text-slate-500">${c.products?.length || 0} productos</p>
             </div>
-            <button onclick="deleteCollection('${id}')" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-xs font-semibold">
+            <button onclick="deleteCollection('${id}')" class="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-xs font-semibold w-full sm:w-auto">
               Eliminar
             </button>
           </div>
@@ -331,16 +456,16 @@
 
         collection.products.forEach(product => {
           html += `
-          <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-primary/10">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-primary/10 gap-3">
             <div class="flex-1">
-              <p class="font-semibold">${product.name}</p>
+              <p class="font-semibold text-base">${product.name}</p>
               <p class="text-sm text-slate-600 dark:text-slate-400">${product.color || ''} • ${product.price || '$0'}</p>
             </div>
-            <div class="flex gap-2">
-              <button onclick='editProduct("${collectionName}", ${JSON.stringify(product).replace(/'/g, "&#39;")})' class="px-3 py-2 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors text-sm font-semibold">
+            <div class="flex gap-2 w-full sm:w-auto">
+              <button onclick='editProduct("${collectionName}", ${JSON.stringify(product).replace(/'/g, "&#39;")})' class="flex-1 sm:flex-none px-3 py-2 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors text-sm font-semibold">
                 Editar
               </button>
-              <button onclick="deleteProduct('${collectionName}', ${product.id})" class="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm font-semibold">
+              <button onclick="deleteProduct('${collectionName}', ${product.id})" class="flex-1 sm:flex-none px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm font-semibold">
                 Eliminar
               </button>
             </div>
@@ -390,7 +515,7 @@
 
       // Restore tab from hash or default to 'add'
       const hash = window.location.hash.replace('#', '');
-      const validTabs = ['add', 'list', 'colls'];
+      const validTabs = ['add', 'list', 'colls', 'home'];
       showTab(validTabs.includes(hash) ? hash : 'add');
     }
 

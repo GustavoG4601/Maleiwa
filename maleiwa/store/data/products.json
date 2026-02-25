@@ -19,6 +19,21 @@
         "colors": [
           "Blanco"
         ]
+      },
+      {
+        "id": 2,
+        "name": "Maleiwa 22",
+        "price": "75.000",
+        "oldPrice": "",
+        "image": "/store/uploads/1772031643084-6hwg98.webp",
+        "color": "Blanco",
+        "material": "",
+        "description": "",
+        "specs": [],
+        "sizes": [],
+        "colors": [
+          "Blanco"
+        ]
       }
     ]
   }
