@@ -180,6 +180,7 @@
               <option value="list">Listar Productos</option>
               <option value="colls">Colecciones</option>
               <option value="home">Editar Inicio</option>
+              <option value="linkbio">Link in Bio</option>
               <option value="settings">Configuración General</option>
               <option value="security">Seguridad</option>
             </select>
@@ -203,6 +204,9 @@
           <button id="tabHome"
             class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
             onclick="showTab('home')">Editar Inicio</button>
+          <button id="tabLinkBio"
+            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
+            onclick="showTab('linkbio')">Link in Bio</button>
           <button id="tabSettings"
             class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
             onclick="showTab('settings')">Configuración General</button>
@@ -408,6 +412,83 @@
           <div id="homeResult" class="mt-4 text-slate-600"></div>
         </div>
 
+        <!-- Tab: Link in Bio -->
+        <div id="tabLinkBioContent" class="hidden">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <h2 class="text-xl font-semibold">Editar Link in Bio</h2>
+            <a href="/index.html" target="_blank"
+              class="flex items-center justify-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg font-bold text-xs hover:bg-primary/20 transition-all w-full sm:w-auto">
+              <span class="material-symbols-outlined text-sm">visibility</span>
+              Previsualizar Link in Bio
+            </a>
+          </div>
+          <form id="linkBioForm" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label class="block">Nombre de Perfil
+                <input id="lbProfileName" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="Maleiwa">
+              </label>
+              <label class="block">Usuario (@...)
+                <input id="lbProfileUsername" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="@soy.maleiwa">
+              </label>
+            </div>
+            <div class="grid grid-cols-1 gap-4">
+              <label class="block">Biografía
+                <textarea id="lbProfileBio" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800" rows="3"
+                  placeholder="Moda consciente..."></textarea>
+              </label>
+              <label class="block">Link de Perfil (Instagram URL)
+                <input id="lbProfileLink" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="https://...">
+              </label>
+              <label class="block">Link del Catálogo (Canva/PDF)
+                <input id="lbCatalogUrl" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                  placeholder="https://www.canva.com/...">
+              </label>
+            </div>
+
+            <div class="p-6 bg-primary/5 rounded-xl border border-primary/10">
+              <h3 class="font-bold text-sm text-primary uppercase tracking-wider mb-4">Foto de Perfil</h3>
+              <input type="file" id="lbProfileImageInput"
+                class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer">
+            </div>
+
+            <div class="p-6 bg-primary/5 rounded-xl border border-primary/10">
+              <h3 class="font-bold text-sm text-primary uppercase tracking-wider mb-4">Enlaces Sociales</h3>
+              <div id="lbSocialLinksContainer" class="space-y-4">
+                <!-- Links injected here -->
+              </div>
+              <button type="button" onclick="addSocialLink()"
+                class="mt-4 text-sm font-bold text-primary flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">add</span> Agregar Enlace
+              </button>
+            </div>
+
+            <div class="p-6 bg-primary/5 rounded-xl border border-primary/10">
+              <h3 class="font-bold text-sm text-primary uppercase tracking-wider mb-4">Gallería / Colección</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label class="block">Título Sección (ej: Colección)
+                  <input id="lbGalleryTitle" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800">
+                </label>
+                <label class="block">Etiqueta Imagen (ej: Esencia)
+                  <input id="lbGalleryLabel" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800">
+                </label>
+                <label class="block md:col-span-2">
+                  <span class="block mb-1">Imagen</span>
+                  <input type="file" id="lbGalleryImageInput"
+                    class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer">
+                </label>
+              </div>
+            </div>
+
+            <button type="submit"
+              class="w-full py-4 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 transition-transform active:scale-95">
+              Guardar Link in Bio
+            </button>
+          </form>
+        </div>
+
         <!-- Tab: Configuración General -->
         <div id="tabSettingsContent" class="hidden text-left">
           <h2 class="text-xl font-semibold mb-6">Configuración General</h2>
@@ -584,6 +665,7 @@
       document.getElementById('tabListContent').classList.toggle('hidden', tabName !== 'list');
       document.getElementById('tabCollsContent').classList.toggle('hidden', tabName !== 'colls');
       document.getElementById('tabHomeContent').classList.toggle('hidden', tabName !== 'home');
+      document.getElementById('tabLinkBioContent').classList.toggle('hidden', tabName !== 'linkbio');
       document.getElementById('tabSettingsContent').classList.toggle('hidden', tabName !== 'settings');
       document.getElementById('tabSecurityContent').classList.toggle('hidden', tabName !== 'security');
 
@@ -603,6 +685,10 @@
       document.getElementById('tabHome').classList.toggle('border-transparent', tabName !== 'home');
       document.getElementById('tabHome').classList.toggle('text-slate-600', tabName !== 'home');
 
+      document.getElementById('tabLinkBio').classList.toggle('border-primary', tabName === 'linkbio');
+      document.getElementById('tabLinkBio').classList.toggle('border-transparent', tabName !== 'linkbio');
+      document.getElementById('tabLinkBio').classList.toggle('text-slate-600', tabName !== 'linkbio');
+
       document.getElementById('tabSettings').classList.toggle('border-primary', tabName === 'settings');
       document.getElementById('tabSettings').classList.toggle('border-transparent', tabName !== 'settings');
       document.getElementById('tabSettings').classList.toggle('text-slate-600', tabName !== 'settings');
@@ -615,6 +701,7 @@
       if (tabName === 'colls') loadCollections();
       if (tabName === 'add') populateCollectionDropdown();
       if (tabName === 'home') loadHomeConfig();
+      if (tabName === 'linkbio') loadLinkBioConfig();
       if (tabName === 'settings') loadSettings();
       if (tabName === 'security') {
         document.getElementById('passwordForm').reset();
@@ -876,7 +963,7 @@
 
       // Restore tab from hash or default to 'add'
       const hash = window.location.hash.replace('#', '');
-      const validTabs = ['add', 'list', 'colls', 'home'];
+      const validTabs = ['add', 'list', 'colls', 'home', 'linkbio', 'settings', 'security'];
       showTab(validTabs.includes(hash) ? hash : 'add');
     }
 
@@ -1081,6 +1168,97 @@
     document.body.insertAdjacentHTML('beforeend', favModalHTML);
     document.getElementById('favModal').addEventListener('click', (e) => { if (e.target.id === 'favModal') closeFavModal(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeFavModal(); });
+    async function loadLinkBioConfig() {
+      try {
+        const res = await fetch('/api/link-bio', { credentials: 'include' });
+        const data = await res.json();
+        document.getElementById('lbProfileName').value = data.profileName || '';
+        document.getElementById('lbProfileUsername').value = data.profileUsername || '';
+        document.getElementById('lbProfileBio').value = data.profileBio || '';
+        document.getElementById('lbProfileLink').value = data.profileLink || '';
+        document.getElementById('lbCatalogUrl').value = data.catalogUrl || '';
+        document.getElementById('lbGalleryTitle').value = data.galleryTitle || '';
+        document.getElementById('lbGalleryLabel').value = data.galleryLabel || '';
+
+        const container = document.getElementById('lbSocialLinksContainer');
+        container.innerHTML = '';
+        if (data.socialLinks) {
+          data.socialLinks.forEach(link => addSocialLinkUI(link));
+        }
+      } catch (e) {
+        console.error('Error loading link-bio config', e);
+      }
+    }
+
+    function addSocialLinkUI(link = { name: '', url: '', active: true }) {
+      const container = document.getElementById('lbSocialLinksContainer');
+      const div = document.createElement('div');
+      div.className = "flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-white dark:bg-slate-800 p-4 rounded-xl border border-primary/10 shadow-sm";
+      div.innerHTML = `
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <input type="checkbox" ${link.active ? 'checked' : ''} class="active-check rounded text-primary focus:ring-primary size-5">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 sm:hidden">Activo</span>
+        </div>
+        <div class="flex flex-col gap-1 w-full flex-1">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Nombre</span>
+          <input class="name-input w-full p-2 text-sm border rounded-lg bg-slate-50 dark:bg-slate-900" placeholder="Ej: Instagram" value="${link.name}">
+        </div>
+        <div class="flex flex-col gap-1 w-full flex-[2]">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">URL</span>
+          <input class="url-input w-full p-2 text-sm border rounded-lg bg-slate-50 dark:bg-slate-900" placeholder="https://..." value="${link.url}">
+        </div>
+        <button type="button" onclick="this.parentElement.remove()" class="self-end sm:self-center text-rose-500 p-2 hover:bg-rose-50 rounded-lg transition-colors">
+          <span class="material-symbols-outlined">delete</span>
+        </button>
+      `;
+      container.appendChild(div);
+    }
+
+    function addSocialLink() {
+      addSocialLinkUI();
+    }
+
+    document.getElementById('linkBioForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData();
+      fd.append('profileName', document.getElementById('lbProfileName').value);
+      fd.append('profileUsername', document.getElementById('lbProfileUsername').value);
+      fd.append('profileBio', document.getElementById('lbProfileBio').value);
+      fd.append('profileLink', document.getElementById('lbProfileLink').value);
+      fd.append('catalogUrl', document.getElementById('lbCatalogUrl').value);
+      fd.append('galleryTitle', document.getElementById('lbGalleryTitle').value);
+      fd.append('galleryLabel', document.getElementById('lbGalleryLabel').value);
+
+      const links = [];
+      document.querySelectorAll('#lbSocialLinksContainer > div').forEach(div => {
+        links.push({
+          name: div.querySelector('.name-input').value,
+          url: div.querySelector('.url-input').value,
+          active: div.querySelector('.active-check').checked
+        });
+      });
+      fd.append('socialLinks', JSON.stringify(links));
+
+      const profileFile = document.getElementById('lbProfileImageInput').files[0];
+      const galleryFile = document.getElementById('lbGalleryImageInput').files[0];
+
+      if (profileFile) fd.append('profileImage', profileFile);
+      if (galleryFile) fd.append('galleryImage', galleryFile);
+
+      try {
+        const res = await fetch('/api/link-bio', { method: 'POST', body: fd, credentials: 'include' });
+        const r = await res.json();
+        if (r.ok) {
+          showToast('Link in Bio guardado con éxito');
+          loadLinkBioConfig();
+        } else {
+          showToast('Error al guardar: ' + (r.error || 'Respuesta fallida'), 'info');
+        }
+      } catch (e) {
+        showToast('Error de conexión', 'info');
+      }
+    });
+
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeFavModal(); });
   </script>
   <!-- Toast Container -->

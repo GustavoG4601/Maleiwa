@@ -402,6 +402,76 @@ app.post('/api/home', authMiddleware, upload.fields([
   }
 });
 
+const LINKBIO_FILE = path.join(DATA_DIR, 'linkbio.json');
+if (!fs.existsSync(LINKBIO_FILE)) {
+  fs.writeFileSync(LINKBIO_FILE, JSON.stringify({
+    profileName: "Maleiwa",
+    profileUsername: "@soy.maleiwa",
+    profileBio: "Moda consciente y minimalista inspirada en la naturaleza, conectada con raices y texturas orgánicas.",
+    profileLink: "https://instagram.com/soy.maleiwa",
+    profileImage: "imagen1.webp",
+    catalogUrl: "#",
+    socialLinks: [
+      { id: 1, name: "Instagram", url: "https://instagram.com/soy.maleiwa", active: true },
+      { id: 2, name: "TikTok", url: "https://www.tiktok.com/@soy.maleiwa", active: true },
+      { id: 3, name: "Facebook", url: "https://www.facebook.com/soy.maleiwa", active: true }
+    ],
+    galleryTitle: "Colección",
+    galleryImage: "esencia caribe.webp",
+    galleryLabel: "Esencia"
+  }, null, 2));
+}
+
+app.get('/api/link-bio', (req, res) => {
+  try {
+    const raw = fs.readFileSync(LINKBIO_FILE, 'utf8');
+    res.json(JSON.parse(raw));
+  } catch (e) {
+    res.status(500).json({ ok: false });
+  }
+});
+
+app.post('/api/link-bio', authMiddleware, upload.fields([
+  { name: 'profileImage', maxCount: 1 },
+  { name: 'galleryImage', maxCount: 1 }
+]), (req, res) => {
+  try {
+    const body = req.body || {};
+    const raw = fs.readFileSync(LINKBIO_FILE, 'utf8');
+    const data = JSON.parse(raw || '{}');
+
+    // Update text fields
+    Object.keys(body).forEach(key => {
+      // socialLinks might come as a JSON string
+      if (key === 'socialLinks' && typeof body[key] === 'string') {
+        try {
+          data[key] = JSON.parse(body[key]);
+        } catch (err) {
+          console.error("Error parsing socialLinks:", err);
+        }
+      } else {
+        data[key] = body[key];
+      }
+    });
+
+    // Explicitly handle catalogUrl if provided
+    if (body.catalogUrl !== undefined) data.catalogUrl = body.catalogUrl;
+
+    // Handle uploaded files
+    if (req.files) {
+      if (req.files.profileImage) data.profileImage = `/store/uploads/${req.files.profileImage[0].filename}`;
+      if (req.files.galleryImage) data.galleryImage = `/store/uploads/${req.files.galleryImage[0].filename}`;
+    }
+
+    fs.writeFileSync(LINKBIO_FILE, JSON.stringify(data, null, 2), 'utf8');
+    res.json({ ok: true, data });
+  } catch (e) {
+    console.error('Error saving link-bio:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+
 // 404 Handler - Return JSON instead of HTML
 app.use((req, res) => {
   res.status(404).json({ ok: false, error: 'Route not found' });
