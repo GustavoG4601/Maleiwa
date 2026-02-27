@@ -65,9 +65,9 @@ function initCartLogic() {
         const orderModalHTML = `
 <div id="orderModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] transition-opacity duration-300 opacity-0 pointer-events-none flex items-center justify-center p-4">
     <div id="orderModalContent" class="bg-background-light dark:bg-background-dark w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
-        <div class="px-6 py-4 border-b border-primary/10 flex items-center justify-between bg-primary/5 text-slate-900 dark:text-slate-100 shrink-0">
+        <div class="px-6 py-5 border-b border-primary/10 flex items-center justify-between bg-primary/5 text-slate-900 dark:text-slate-100 shrink-0 sticky top-0 z-20 backdrop-blur-sm">
             <h3 class="text-xl font-bold">Datos de Envío</h3>
-            <button onclick="closeOrderModal()" class="p-2 hover:bg-primary/10 rounded-full transition-colors text-slate-500">
+            <button onclick="closeOrderModal()" class="w-10 h-10 flex items-center justify-center hover:bg-primary/10 rounded-full transition-colors text-slate-500">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
@@ -162,16 +162,24 @@ function initCartLogic() {
         .toast.show {
             transform: translateY(0) !important;
         }
+        #orderModal {
+            align-items: flex-end !important;
+            padding: 0 !important;
+        }
         #orderModalContent {
-            max-height: 95vh;
-            margin: 0;
-            border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0;
-            position: fixed;
-            bottom: 0;
+            max-height: 85svh !important;
+            max-height: 85dvh !important;
+            width: 100% !important;
+            margin: 0 !important;
+            border-bottom-left-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+            border-top-left-radius: 2rem !important;
+            border-top-right-radius: 2rem !important;
+            position: relative !important;
+            padding-bottom: env(safe-area-inset-bottom, 24px) !important;
         }
         #orderForm {
-            padding-bottom: 2rem;
+            padding-bottom: 4rem !important;
         }
     }
     

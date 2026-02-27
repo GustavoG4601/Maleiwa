@@ -177,7 +177,7 @@
             <select id="tabSelector" onchange="showTab(this.value)"
               class="w-full p-4 bg-background-light dark:bg-background-dark border border-primary/20 rounded-xl font-semibold text-slate-900 dark:text-slate-100 shadow-sm focus:ring-2 focus:ring-primary/20 outline-none appearance-none backdrop-blur-sm cursor-pointer transition-all hover:border-primary/40">
               <option value="add">Agregar Producto</option>
-              <option value="list">Listar Productos</option>
+              <option value="list" selected>Listar Productos</option>
               <option value="colls">Colecciones</option>
               <option value="home">Editar Inicio</option>
               <option value="linkbio">Link in Bio</option>
@@ -193,7 +193,8 @@
         <!-- Tabs (Desktop) -->
         <div
           class="hidden md:flex gap-2 mb-6 border-b border-primary/10 overflow-x-auto no-scrollbar whitespace-nowrap -mx-6 px-6">
-          <button id="tabAdd" class="px-4 py-3 border-b-2 border-primary font-semibold cursor-pointer shrink-0"
+          <button id="tabAdd"
+            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
             onclick="showTab('add')">Agregar Producto</button>
           <button id="tabList"
             class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
@@ -654,6 +655,8 @@
 
     // Tab management
     function showTab(tabName) {
+      if (!tabName) return;
+
       // Save to hash
       window.location.hash = tabName;
 
@@ -961,10 +964,9 @@
       document.getElementById('loginBox').classList.add('hidden');
       document.getElementById('adminArea').classList.remove('hidden');
 
-      // Restore tab from hash or default to 'add'
       const hash = window.location.hash.replace('#', '');
       const validTabs = ['add', 'list', 'colls', 'home', 'linkbio', 'settings', 'security'];
-      showTab(validTabs.includes(hash) ? hash : 'add');
+      showTab(validTabs.includes(hash) ? hash : 'list');
     }
 
     async function checkAuth() {
