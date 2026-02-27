@@ -34,6 +34,7 @@ const colombiaData = {
 };
 
 function initCartLogic() {
+    initTheme();
     if (!document.getElementById('searchModal')) {
         const searchModalHTML = `
 <div id="searchModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[120] transition-opacity duration-300 opacity-0 pointer-events-none flex items-center justify-center p-4">
@@ -396,3 +397,21 @@ if (document.readyState === 'loading') {
 } else {
     initCartLogic();
 }
+
+function initTheme() {
+    const theme = localStorage.getItem('theme');
+    if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+}
+
+function toggleTheme() {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    // Optional: add a small sound or haptic feedback here if desired
+}
+
+window.toggleTheme = toggleTheme;
+window.initTheme = initTheme;

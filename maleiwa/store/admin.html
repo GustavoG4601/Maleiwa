@@ -4,6 +4,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script id="theme-loader">
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
   <link rel="icon" href="Logo oficial.webp" />
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <title>Admin | Maleiwa</title>
@@ -54,7 +59,7 @@
     }
 
     .nav-active {
-      @apply text-primary;
+      color: #d2781e;
     }
 
     /* Toast Styles */
@@ -121,6 +126,11 @@
         <img src="logo.webp" alt="Maleiwa" class="h-10">
       </div>
       <div class="flex items-center gap-4">
+        <button onclick="toggleTheme()"
+          class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors">
+          <span class="material-symbols-outlined dark:hidden">dark_mode</span>
+          <span class="material-symbols-outlined hidden dark:block">light_mode</span>
+        </button>
         <button onclick="location.href='/store/index.html'"
           class="px-4 py-2 bg-primary/10 text-primary rounded-lg font-semibold hover:bg-primary/20 transition-colors">Volver
           al Sitio</button>
@@ -540,12 +550,12 @@
                 <label class="block">Instagram (@usuario)
                   <input id="setContactInstagram"
                     class="w-full mt-2 p-4 border-none rounded-xl bg-white dark:bg-slate-800 shadow-sm focus:ring-2 focus:ring-primary transition-all"
-                    placeholder="@maleiwa">
+                    placeholder="@soy.maleiwa">
                 </label>
                 <label class="block">TikTok (@usuario)
                   <input id="setContactTiktok"
                     class="w-full mt-2 p-4 border-none rounded-xl bg-white dark:bg-slate-800 shadow-sm focus:ring-2 focus:ring-primary transition-all"
-                    placeholder="@maleiwa">
+                    placeholder="@soy.maleiwa">
                 </label>
                 <label class="block md:col-span-2">URL "Trabaja con nosotros" (Carreras)
                   <input id="setContactCareers"
