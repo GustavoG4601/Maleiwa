@@ -191,29 +191,28 @@
         </div>
 
         <!-- Tabs (Desktop) -->
-        <div
-          class="hidden md:flex gap-2 mb-6 border-b border-primary/10 overflow-x-auto no-scrollbar whitespace-nowrap -mx-6 px-6">
-          <button id="tabAdd"
-            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
-            onclick="showTab('add')">Agregar Producto</button>
+        <div class="hidden md:flex flex-wrap items-center gap-x-6 gap-y-2 mb-8 border-b border-primary/10 pb-2">
           <button id="tabList"
-            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
+            class="px-2 py-3 border-b-2 border-transparent text-slate-600 hover:text-primary transition-colors font-bold cursor-pointer shrink-0"
             onclick="showTab('list')">Listar Productos</button>
+          <button id="tabAdd"
+            class="px-2 py-3 border-b-2 border-transparent text-slate-600 hover:text-primary transition-colors font-bold cursor-pointer shrink-0"
+            onclick="showTab('add')">Agregar Producto</button>
+          <button id="tabSecurity"
+            class="px-2 py-3 border-b-2 border-transparent text-slate-600 hover:text-primary transition-colors font-bold cursor-pointer shrink-0"
+            onclick="showTab('security')">Seguridad</button>
           <button id="tabColls"
-            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
+            class="px-2 py-3 border-b-2 border-transparent text-slate-600 hover:text-primary transition-colors font-bold cursor-pointer shrink-0"
             onclick="showTab('colls')">Colecciones</button>
           <button id="tabHome"
-            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
-            onclick="showTab('home')">Editar Inicio</button>
+            class="px-2 py-3 border-b-2 border-transparent text-slate-600 hover:text-primary transition-colors font-bold cursor-pointer shrink-0"
+            onclick="showTab('home')">Inicio</button>
           <button id="tabLinkBio"
-            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
+            class="px-2 py-3 border-b-2 border-transparent text-slate-600 hover:text-primary transition-colors font-bold cursor-pointer shrink-0"
             onclick="showTab('linkbio')">Link in Bio</button>
           <button id="tabSettings"
-            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
-            onclick="showTab('settings')">Configuración General</button>
-          <button id="tabSecurity"
-            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
-            onclick="showTab('security')">Seguridad</button>
+            class="px-2 py-3 border-b-2 border-transparent text-slate-600 hover:text-primary transition-colors font-bold cursor-pointer shrink-0"
+            onclick="showTab('settings')">Ajustes Generales</button>
         </div>
 
         <!-- Tab: Agregar/Editar Producto -->
@@ -492,28 +491,88 @@
 
         <!-- Tab: Configuración General -->
         <div id="tabSettingsContent" class="hidden text-left">
-          <h2 class="text-xl font-semibold mb-6">Configuración General</h2>
-          <form id="settingsForm" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label class="block md:col-span-2">Número de WhatsApp (ej: 573046601648)
-                <input id="setWhatsapp" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
-                  placeholder="57...">
-              </label>
-              <label class="block md:col-span-2">Título "¿Quiénes Somos?"
-                <input id="setAboutTitle" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
-                  placeholder="¿Quiénes somos?">
-              </label>
-              <label class="block md:col-span-2">Texto "¿Quiénes Somos?"
-                <textarea id="setAboutText" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
-                  rows="4"></textarea>
-              </label>
+          <h2 class="text-2xl font-bold mb-8 text-slate-900 dark:text-slate-100 flex items-center gap-3">
+            <span class="material-symbols-outlined text-primary">settings</span>
+            Configuración General
+          </h2>
+          <form id="settingsForm" class="space-y-8">
+            <!-- Sección: Identidad y Texto -->
+            <div
+              class="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 space-y-4">
+              <h3 class="text-sm font-black uppercase tracking-[0.2em] text-primary mb-4">Sección "Quiénes Somos"</h3>
+              <div class="grid grid-cols-1 gap-4">
+                <label class="block">Título de la sección
+                  <input id="setAboutTitle"
+                    class="w-full mt-2 p-4 border-none rounded-xl bg-white dark:bg-slate-800 shadow-sm focus:ring-2 focus:ring-primary transition-all"
+                    placeholder="¿Quiénes somos?">
+                </label>
+                <label class="block">Reseña de la marca
+                  <textarea id="setAboutText"
+                    class="w-full mt-2 p-4 border-none rounded-xl bg-white dark:bg-slate-800 shadow-sm focus:ring-2 focus:ring-primary transition-all"
+                    rows="4"></textarea>
+                </label>
+              </div>
             </div>
+
+            <!-- Sección: Canales de Contacto -->
+            <div
+              class="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 space-y-4">
+              <h3 class="text-sm font-black uppercase tracking-[0.2em] text-primary mb-4">Canales Oficiales</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label class="block">WhatsApp (ej: 573046601648)
+                  <input id="setWhatsapp"
+                    class="w-full mt-2 p-4 border-none rounded-xl bg-white dark:bg-slate-800 shadow-sm focus:ring-2 focus:ring-primary transition-all"
+                    placeholder="57...">
+                </label>
+                <label class="block">Email de Soporte
+                  <input id="setContactEmail"
+                    class="w-full mt-2 p-4 border-none rounded-xl bg-white dark:bg-slate-800 shadow-sm focus:ring-2 focus:ring-primary transition-all"
+                    placeholder="hola@maleiwa.com">
+                </label>
+              </div>
+            </div>
+
+            <!-- Sección: Redes Sociales -->
+            <div
+              class="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 space-y-4">
+              <h3 class="text-sm font-black uppercase tracking-[0.2em] text-primary mb-4">Presencia Digital</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label class="block">Instagram (@usuario)
+                  <input id="setContactInstagram"
+                    class="w-full mt-2 p-4 border-none rounded-xl bg-white dark:bg-slate-800 shadow-sm focus:ring-2 focus:ring-primary transition-all"
+                    placeholder="@maleiwa">
+                </label>
+                <label class="block">TikTok (@usuario)
+                  <input id="setContactTiktok"
+                    class="w-full mt-2 p-4 border-none rounded-xl bg-white dark:bg-slate-800 shadow-sm focus:ring-2 focus:ring-primary transition-all"
+                    placeholder="@maleiwa">
+                </label>
+                <label class="block md:col-span-2">URL "Trabaja con nosotros" (Carreras)
+                  <input id="setContactCareers"
+                    class="w-full mt-2 p-4 border-none rounded-xl bg-white dark:bg-slate-800 shadow-sm focus:ring-2 focus:ring-primary transition-all"
+                    placeholder="https://...">
+                </label>
+              </div>
+            </div>
+
+            <!-- Sección: Multimedia -->
+            <div class="p-6 bg-primary/5 rounded-2xl border border-primary/20 space-y-4">
+              <div class="flex items-center gap-3 mb-2">
+                <span class="material-symbols-outlined text-primary">image</span>
+                <h3 class="text-sm font-black uppercase tracking-[0.2em] text-primary">Imagen Hero (Contacto)</h3>
+              </div>
+              <p class="text-[10px] text-slate-500 mb-4 italic">Esta imagen aparecerá de fondo en la sección "Hablemos"
+                de la página de contacto.</p>
+              <input type="file" id="setContactHeroImage"
+                class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer">
+            </div>
+
             <button type="submit"
-              class="w-full py-4 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 transition-transform active:scale-95">
-              Guardar Configuración
+              class="w-full py-5 bg-primary text-white rounded-2xl font-black shadow-xl shadow-primary/20 transition-all active:scale-95 hover:brightness-110 uppercase tracking-widest text-sm">
+              Guardar todos los cambios
             </button>
           </form>
-          <div id="settingsResult" class="mt-4 text-green-600 font-semibold text-center"></div>
+          <div id="settingsResult" class="mt-6 text-green-600 font-bold text-center"></div>
         </div>
 
         <!-- Tab: Seguridad -->
@@ -1079,10 +1138,13 @@
       try {
         const res = await fetch('/api/settings');
         const data = await res.json();
-        // Update form fields
         document.getElementById('setWhatsapp').value = data.whatsapp || '';
         document.getElementById('setAboutTitle').value = data.aboutUsTitle || '';
         document.getElementById('setAboutText').value = data.aboutUsText || '';
+        document.getElementById('setContactEmail').value = data.contactEmail || '';
+        document.getElementById('setContactInstagram').value = data.contactInstagram || '';
+        document.getElementById('setContactTiktok').value = data.contactTiktok || '';
+        document.getElementById('setContactCareers').value = data.contactCareersUrl || '';
 
         // Update modal content
         if (data.aboutUsTitle) {
@@ -1098,19 +1160,31 @@
 
     document.getElementById('settingsForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const data = {
-        whatsapp: document.getElementById('setWhatsapp').value,
-        aboutUsTitle: document.getElementById('setAboutTitle').value,
-        aboutUsText: document.getElementById('setAboutText').value
-      };
-      const r = await postJSON('/api/settings', data);
-      if (r.ok) {
-        showToast('Configuración general guardada');
-        document.getElementById('settingsResult').innerText = 'Configuración guardada con éxito.';
-        loadSettings();
-        setTimeout(() => { document.getElementById('settingsResult').innerText = ''; }, 3000);
-      } else {
-        showToast('Error al guardar configuración', 'info');
+      const fd = new FormData();
+      fd.append('whatsapp', document.getElementById('setWhatsapp').value);
+      fd.append('aboutUsTitle', document.getElementById('setAboutTitle').value);
+      fd.append('aboutUsText', document.getElementById('setAboutText').value);
+      fd.append('contactEmail', document.getElementById('setContactEmail').value);
+      fd.append('contactInstagram', document.getElementById('setContactInstagram').value);
+      fd.append('contactTiktok', document.getElementById('setContactTiktok').value);
+      fd.append('contactCareersUrl', document.getElementById('setContactCareers').value);
+
+      const heroFile = document.getElementById('setContactHeroImage').files[0];
+      if (heroFile) fd.append('contactHeroImage', heroFile);
+
+      try {
+        const res = await fetch('/api/settings', { method: 'POST', body: fd, credentials: 'include' });
+        const r = await res.json();
+        if (r.ok) {
+          showToast('Configuración general guardada');
+          document.getElementById('settingsResult').innerText = 'Configuración guardada con éxito.';
+          loadSettings();
+          setTimeout(() => { document.getElementById('settingsResult').innerText = ''; }, 3000);
+        } else {
+          showToast('Error al guardar configuración', 'info');
+        }
+      } catch (e) {
+        showToast('Error de conexión', 'info');
       }
     });
 

@@ -191,6 +191,16 @@ function initCartLogic() {
         background-position: right 1rem center;
         background-size: 1em;
     }
+    /* Fly to cart animation */
+    .fly-item {
+        position: fixed;
+        z-index: 9999;
+        pointer-events: none;
+        object-fit: cover;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s ease-in-out;
+    }
 </style>
         `;
         document.body.insertAdjacentHTML('beforeend', orderModalHTML);
@@ -207,6 +217,24 @@ function initCartLogic() {
         });
     }
 }
+
+// Bridge function to be used by other pages to trigger the fly animation
+window.triggerCartAdd = function (item, cartItem) {
+    // 1. Save to local storage
+    const cart = (typeof getCart === 'function') ? getCart() : [];
+    cart.push(cartItem);
+    saveCart(cart);
+
+    // 2. Trigger micro-animation!
+    if (typeof window.animateFlyToCart === 'function') {
+        window.animateFlyToCart(item.image);
+    }
+
+    // 3. UI Feedback
+    if (typeof closeSizeColorModal === 'function') closeSizeColorModal();
+    if (typeof showToast === 'function') showToast(`${item.name} añadido`);
+}
+
 
 function populateDepts() {
     const select = document.getElementById('deptSelect');
@@ -316,6 +344,51 @@ window.processOrder = function (e) {
     const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
     window.location.href = waUrl;
 };
+
+window.animateFlyToCart = function (imgSrc) {
+    const cartBtn = document.querySelector('#openCartBtn') || document.getElementById('cart-count');
+    if (!cartBtn) return;
+
+    const img = document.createElement('img');
+    img.src = imgSrc;
+    img.className = 'fly-item';
+
+    // Initial position (center of screen since modal is open)
+    const startX = window.innerWidth / 2 - 50;
+    const startY = window.innerHeight / 2 - 50;
+
+    img.style.left = startX + 'px';
+    img.style.top = startY + 'px';
+    img.style.width = '100px';
+    img.style.height = '120px';
+    img.style.opacity = '1';
+
+    document.body.appendChild(img);
+
+    // Destination
+    const rect = cartBtn.getBoundingClientRect();
+    const destX = rect.left + rect.width / 2 - 20;
+    const destY = rect.top + rect.height / 2 - 20;
+
+    // Trigger animation
+    requestAnimationFrame(() => {
+        img.style.transform = `translate(${destX - startX}px, ${destY - startY}px) scale(0.1)`;
+        img.style.opacity = '0.5';
+    });
+
+    // Cleanup and visual feedback on cart icon
+    setTimeout(() => {
+        img.remove();
+        cartBtn.classList.add('scale-125', 'text-primary');
+        const count = document.getElementById('cart-count');
+        if (count) count.classList.add('scale-150', 'text-primary');
+
+        setTimeout(() => {
+            cartBtn.classList.remove('scale-125', 'text-primary');
+            if (count) count.classList.remove('scale-150', 'text-primary');
+        }, 300);
+    }, 800);
+}
 
 // Start injection
 if (document.readyState === 'loading') {

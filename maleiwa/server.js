@@ -55,34 +55,7 @@ app.get('/store/product.html', (req, res) => {
   }
 });
 
-const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
-if (!fs.existsSync(SETTINGS_FILE)) {
-  fs.writeFileSync(SETTINGS_FILE, JSON.stringify({
-    whatsapp: '573046601648',
-    shippingFee: 0,
-    aboutUsTitle: '¿Quiénes somos?',
-    aboutUsText: 'Maleiwa es una marca de moda consciente y minimalista inspirada en la naturaleza.'
-  }, null, 2));
-}
 
-app.get('/api/settings', (req, res) => {
-  try {
-    const raw = fs.readFileSync(SETTINGS_FILE, 'utf8');
-    res.json(JSON.parse(raw));
-  } catch (e) {
-    res.status(500).json({ ok: false });
-  }
-});
-
-app.post('/api/settings', authMiddleware, (req, res) => {
-  try {
-    const data = req.body;
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(data, null, 2), 'utf8');
-    res.json({ ok: true });
-  } catch (e) {
-    res.status(500).json({ ok: false });
-  }
-});
 
 // serve static site
 // Block sensitive files/folders FIRST
@@ -193,6 +166,55 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage });
+
+const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
+if (!fs.existsSync(SETTINGS_FILE)) {
+  fs.writeFileSync(SETTINGS_FILE, JSON.stringify({
+    whatsapp: '573046601648',
+    shippingFee: 0,
+    aboutUsTitle: '¿Quiénes somos?',
+    aboutUsText: 'Maleiwa es una marca de moda consciente y minimalista inspirada en la naturaleza.',
+    contactEmail: 'hola@maleiwa.com',
+    contactInstagram: '@maleiwa.store',
+    contactTiktok: '@maleiwa.store',
+    contactCareersUrl: '#'
+  }, null, 2));
+}
+
+app.get('/api/settings', (req, res) => {
+  try {
+    const raw = fs.readFileSync(SETTINGS_FILE, 'utf8');
+    res.json(JSON.parse(raw));
+  } catch (e) {
+    res.status(500).json({ ok: false });
+  }
+});
+
+app.post('/api/settings', authMiddleware, upload.fields([
+  { name: 'contactHeroImage', maxCount: 1 }
+]), (req, res) => {
+  try {
+    const raw = fs.readFileSync(SETTINGS_FILE, 'utf8');
+    const data = JSON.parse(raw || '{}');
+    const body = req.body || {};
+
+    // Update text fields
+    Object.keys(body).forEach(key => {
+      data[key] = body[key];
+    });
+
+    // Handle uploaded file
+    if (req.files && req.files.contactHeroImage) {
+      data.contactHeroImage = `/store/uploads/${req.files.contactHeroImage[0].filename}`;
+    }
+
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(data, null, 2), 'utf8');
+    res.json({ ok: true, data });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false });
+  }
+});
 
 // add product (protected)
 app.post('/api/products', authMiddleware, upload.array('images', 5), (req, res) => {
