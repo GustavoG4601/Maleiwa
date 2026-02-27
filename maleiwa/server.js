@@ -85,15 +85,49 @@ app.post('/api/settings', authMiddleware, (req, res) => {
 });
 
 // serve static site
-app.use('/', express.static(path.join(__dirname)));
+// Block sensitive files/folders FIRST
+app.use((req, res, next) => {
+  const forbidden = [
+    '/store/data/',
+    '/package.json',
+    '/package-lock.json',
+    '/.git',
+    '/.env',
+    '/server.js'
+  ];
+  if (forbidden.some(f => req.path.toLowerCase().includes(f.toLowerCase()))) {
+    return res.status(403).send('Acceso denegado');
+  }
+  next();
+});
+
+// Explicitly serve uploads first
 app.use('/store/uploads', express.static(UPLOADS_DIR));
 
+// Serve everything else
+app.use('/', express.static(__dirname));
 
+
+
+const ADMIN_FILE = path.join(DATA_DIR, 'admin.json');
+if (!fs.existsSync(ADMIN_FILE)) {
+  fs.writeFileSync(ADMIN_FILE, JSON.stringify({
+    username: 'admin',
+    password: 'admin',
+    token: 'admin_secret'
+  }, null, 2));
+}
+
+function getAdmin() {
+  const raw = fs.readFileSync(ADMIN_FILE, 'utf8');
+  return JSON.parse(raw);
+}
 
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body || {};
-  if (username === 'admin' && password === 'admin') {
-    res.cookie('admin_token', 'admin_secret', { httpOnly: true, sameSite: 'Lax' });
+  const admin = getAdmin();
+  if (username === admin.username && password === admin.password) {
+    res.cookie('admin_token', admin.token, { httpOnly: true, sameSite: 'Lax' });
     return res.json({ ok: true });
   }
   res.status(401).json({ ok: false });
@@ -104,15 +138,37 @@ app.post('/api/logout', (req, res) => {
   res.json({ ok: true });
 });
 
+app.post('/api/change-password', authMiddleware, (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const admin = getAdmin();
+    if (oldPassword !== admin.password) {
+      return res.status(400).json({ ok: false, error: 'La contraseña actual es incorrecta' });
+    }
+    admin.password = newPassword;
+    // Generate a new token to invalidate old sessions if desired, or keep fixed
+    admin.token = 'admin_secret_' + Date.now();
+    fs.writeFileSync(ADMIN_FILE, JSON.stringify(admin, null, 2), 'utf8');
+
+    // Set new cookie for current session
+    res.cookie('admin_token', admin.token, { httpOnly: true, sameSite: 'Lax' });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ ok: false });
+  }
+});
+
 function authMiddleware(req, res, next) {
   const token = req.cookies && req.cookies.admin_token;
-  if (token === 'admin_secret') return next();
+  const admin = getAdmin();
+  if (token === admin.token) return next();
   return res.status(401).json({ ok: false, error: 'unauthorized' });
 }
 
 app.get('/api/check-auth', (req, res) => {
   const token = req.cookies && req.cookies.admin_token;
-  if (token === 'admin_secret') return res.json({ ok: true });
+  const admin = getAdmin();
+  if (token === admin.token) return res.json({ ok: true });
   res.status(401).json({ ok: false });
 });
 
@@ -346,4 +402,18 @@ app.post('/api/home', authMiddleware, upload.fields([
   }
 });
 
-app.listen(PORT, () => console.log('Server running on port', PORT));
+// 404 Handler - Return JSON instead of HTML
+app.use((req, res) => {
+  res.status(404).json({ ok: false, error: 'Route not found' });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('Server Error:', err);
+  res.status(500).json({ ok: false, error: 'Internal server error' });
+});
+
+app.listen(PORT, () => {
+  console.log(`--- Maleiwa Server Started ---`);
+  console.log(`URL: http://localhost:${PORT}`);
+});

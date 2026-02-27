@@ -181,6 +181,7 @@
               <option value="colls">Colecciones</option>
               <option value="home">Editar Inicio</option>
               <option value="settings">Configuración General</option>
+              <option value="security">Seguridad</option>
             </select>
             <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-primary/60">
               <span class="material-symbols-outlined">expand_more</span>
@@ -205,6 +206,9 @@
           <button id="tabSettings"
             class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
             onclick="showTab('settings')">Configuración General</button>
+          <button id="tabSecurity"
+            class="px-4 py-3 border-b-2 border-transparent text-slate-600 hover:border-primary/50 cursor-pointer shrink-0"
+            onclick="showTab('security')">Seguridad</button>
         </div>
 
         <!-- Tab: Agregar/Editar Producto -->
@@ -294,11 +298,6 @@
               <button class="flex-1 py-4 border border-slate-200 dark:border-slate-700 rounded-xl font-bold hidden"
                 id="cancelEditBtn" type="button" onclick="cancelEdit()">
                 Cancelar Edición
-              </button>
-              <button
-                class="px-6 py-4 border border-rose-200 text-rose-500 rounded-xl font-bold hover:bg-rose-50 transition-colors"
-                id="logoutBtn" type="button">
-                Salir
               </button>
             </div>
           </form>
@@ -434,6 +433,42 @@
           </form>
           <div id="settingsResult" class="mt-4 text-green-600 font-semibold text-center"></div>
         </div>
+
+        <!-- Tab: Seguridad -->
+        <div id="tabSecurityContent" class="hidden text-left">
+          <h2 class="text-xl font-semibold mb-6">Seguridad</h2>
+          <div class="bg-primary/5 border border-primary/10 rounded-2xl p-6">
+            <h3 class="font-bold text-slate-900 dark:text-slate-100 mb-4">Cambiar Contraseña</h3>
+            <form id="passwordForm" class="space-y-4">
+              <label class="block">Contraseña Actual
+                <input type="password" id="oldPassword"
+                  class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800" placeholder="••••••••" required>
+              </label>
+              <label class="block">Nueva Contraseña
+                <input type="password" id="newPassword"
+                  class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800" placeholder="••••••••" required>
+              </label>
+              <label class="block">Confirmar Nueva Contraseña
+                <input type="password" id="confirmPassword"
+                  class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800" placeholder="••••••••" required>
+              </label>
+              <button type="submit"
+                class="w-full py-4 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 transition-transform active:scale-95">
+                Actualizar Contraseña
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Logout Button (General) -->
+        <div class="mt-12 pt-6 border-t border-primary/10 flex justify-center sm:justify-end">
+          <button
+            class="px-8 py-3 border border-rose-200 text-rose-500 rounded-xl font-bold hover:bg-rose-50 transition-all active:scale-95 flex items-center gap-2"
+            id="logoutBtn" type="button">
+            <span class="material-symbols-outlined text-xl font-light">logout</span>
+            Salir del Panel
+          </button>
+        </div>
       </div>
     </main>
 
@@ -550,6 +585,7 @@
       document.getElementById('tabCollsContent').classList.toggle('hidden', tabName !== 'colls');
       document.getElementById('tabHomeContent').classList.toggle('hidden', tabName !== 'home');
       document.getElementById('tabSettingsContent').classList.toggle('hidden', tabName !== 'settings');
+      document.getElementById('tabSecurityContent').classList.toggle('hidden', tabName !== 'security');
 
       document.getElementById('tabAdd').classList.toggle('border-primary', tabName === 'add');
       document.getElementById('tabAdd').classList.toggle('border-transparent', tabName !== 'add');
@@ -571,12 +607,49 @@
       document.getElementById('tabSettings').classList.toggle('border-transparent', tabName !== 'settings');
       document.getElementById('tabSettings').classList.toggle('text-slate-600', tabName !== 'settings');
 
+      document.getElementById('tabSecurity').classList.toggle('border-primary', tabName === 'security');
+      document.getElementById('tabSecurity').classList.toggle('border-transparent', tabName !== 'security');
+      document.getElementById('tabSecurity').classList.toggle('text-slate-600', tabName !== 'security');
+
       if (tabName === 'list') loadProducts();
       if (tabName === 'colls') loadCollections();
       if (tabName === 'add') populateCollectionDropdown();
       if (tabName === 'home') loadHomeConfig();
       if (tabName === 'settings') loadSettings();
+      if (tabName === 'security') {
+        document.getElementById('passwordForm').reset();
+      }
     }
+
+    document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const oldPassword = document.getElementById('oldPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      if (newPassword !== confirmPassword) {
+        return showToast('Las nuevas contraseñas no coinciden', 'info');
+      }
+
+      try {
+        const res = await fetch('/api/change-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ oldPassword, newPassword }),
+          credentials: 'include'
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast('Contraseña actualizada con éxito');
+          document.getElementById('passwordForm').reset();
+        } else {
+          showToast(data.error || 'Error al actualizar contraseña', 'info');
+        }
+      } catch (e) {
+        console.error('Password change error:', e);
+        showToast('Error de conexión: ' + e.message, 'info');
+      }
+    });
 
     async function loadHomeConfig() {
       try {
@@ -910,7 +983,7 @@
       try {
         await fetch('/api/logout', { method: 'POST', credentials: 'include' });
       } catch (e) { }
-      location.href = '/';
+      location.reload();
     });
 
     async function loadSettings() {
