@@ -111,11 +111,7 @@
                 </button>
                 <button id="openCartBtn" onclick="showCartModal()"
                     class="flex items-center justify-center p-1 text-slate-900 dark:text-slate-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                        fill="currentColor" class="text-primary">
-                        <path
-                            d="M6 2h12l1 4v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6l1-4zm6 7a3 3 0 0 0 3-3h-2a1 1 0 0 1-2 0H9a3 3 0 0 0 3 3z" />
-                    </svg>
+                    <span class="material-symbols-outlined text-primary">shopping_bag</span>
                     <span id="cart-count" class="text-sm font-semibold ml-2">0</span>
                 </button>
             </div>
@@ -282,12 +278,7 @@
             });
         </script>
 
-        <script>
-            function openSearch() {
-                const q = prompt('Buscar productos');
-                if (q && q.trim()) window.location.href = `collection.html?q=${encodeURIComponent(q.trim())}`;
-            }
-        </script>
+
 
         <script>
             function openFavorites() { showFavModal(); }
@@ -323,6 +314,7 @@
             }, 3000);
         }
     </script>
+    <script src="cart-logic.js"></script>
 </body>
 
 </html>
@@ -422,15 +414,6 @@
     }
     loadSettings();
 
-    function checkout() {
-        const cart = getCart(); if (!cart || cart.length === 0) { alert('Tu carrito está vacío.'); return; }
-        const total = cart.reduce((s, i) => s + (i.price * (i.qty || 1)), 0);
-        let text = 'Pedido Maleiwa:\n'; cart.forEach(item => { text += `- ${item.qty} x ${item.name} - ${formatPrice(item.price * item.qty)}\n`; });
-        text += `\nTotal: ${formatPrice(total)}`;
-        const phone = storeSettings.whatsapp || '573046601648';
-        const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
-        window.location.href = waUrl;
-    }
 
     function clearCart() { saveCart([]); renderCart(); }
 
@@ -461,7 +444,7 @@
       </div>
       <div class="flex flex-col gap-3">
         <button onclick="checkout()" class="w-full py-4 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 transition-transform active:scale-95 flex items-center justify-center gap-2">
-          Finalizar Compra
+          Continuar
           <span class="material-symbols-outlined text-sm font-bold">arrow_forward</span>
         </button>
         <button onclick="clearCart()" class="w-full py-3 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors text-sm">
