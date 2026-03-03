@@ -200,7 +200,11 @@ app.post('/api/settings', authMiddleware, upload.fields([
 
     // Update text fields
     Object.keys(body).forEach(key => {
-      data[key] = body[key];
+      if (key === 'whatsapp2Active') {
+        data[key] = body[key] === 'true';
+      } else {
+        data[key] = body[key];
+      }
     });
 
     // Handle uploaded file
@@ -471,6 +475,8 @@ app.post('/api/link-bio', authMiddleware, upload.fields([
         } catch (err) {
           console.error("Error parsing socialLinks:", err);
         }
+      } else if (key === 'whatsapp2Active') {
+        data[key] = body[key] === 'true';
       } else {
         data[key] = body[key];
       }

@@ -239,6 +239,7 @@
       try {
         const res = await fetch('/api/settings');
         const data = await res.json();
+        window.storeSettings = data;
         if (data.aboutUsTitle) document.getElementById('aboutTitle').textContent = data.aboutUsTitle;
         if (data.aboutUsText) document.getElementById('aboutText').textContent = data.aboutUsText;
       } catch (e) { console.error('Error loading settings', e); }

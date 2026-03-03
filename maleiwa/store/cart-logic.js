@@ -341,7 +341,10 @@ window.processOrder = function (e) {
     text += `• Dirección: ${customer.address}\n`;
     text += `• Medio de pago: ${customer.paymentMethod}\n`;
 
-    const phone = (window.storeSettings && window.storeSettings.whatsapp) ? window.storeSettings.whatsapp : '573046601648';
+    let phone = '573046601648';
+    if (window.storeSettings) {
+        phone = window.storeSettings.whatsapp1 || window.storeSettings.whatsapp || phone;
+    }
     const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
     window.location.href = waUrl;
 };

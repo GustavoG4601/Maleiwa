@@ -14,15 +14,13 @@
       "name": "TikTok",
       "url": "https://www.tiktok.com/@soy.maleiwa",
       "active": true
-    },
-    {
-      "name": "Facebook",
-      "url": "https://www.facebook.com/soy.maleiwa",
-      "active": true
     }
   ],
   "galleryTitle": "Colección",
   "galleryImage": "/store/uploads/1772206183145-2jh94g.webp",
   "galleryLabel": "Esencia",
-  "catalogUrl": "https://www.canva.com/design/DAHB4ImxhzQ/gdrZysCK1rwMj-3tEnJh5g/edit?utm_content=DAHB4ImxhzQ&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton"
+  "catalogUrl": "https://www.canva.com/design/DAHB4ImxhzQ/gdrZysCK1rwMj-3tEnJh5g/edit?utm_content=DAHB4ImxhzQ&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton",
+  "whatsapp1": "573046601648",
+  "whatsapp2": "573214852145",
+  "whatsapp2Active": true
 }

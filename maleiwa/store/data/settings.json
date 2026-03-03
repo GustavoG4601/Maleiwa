@@ -1,9 +1,13 @@
 {
-  "whatsapp": "",
-  "aboutUsTitle": "",
-  "aboutUsText": "",
-  "contactEmail": "",
-  "contactInstagram": "",
-  "contactCareersUrl": "",
+  "whatsapp1": "573046601648",
+  "whatsapp2": "3024894455",
+  "whatsapp2Active": false,
+  "shippingFee": 0,
+  "aboutUsTitle": "¿Quiénes somos?",
+  "aboutUsText": "Maleiwa es una marca de moda consciente y minimalista inspirada en la naturaleza.",
+  "contactEmail": "hola@maleiwa.com",
+  "contactInstagram": "@soy.maleiwa",
+  "contactTiktok": "@soy.maleiwa",
+  "contactCareersUrl": "https://www.canva.com/design/DAHB4ImxhzQ/gdrZysCK1rwMj-3tEnJh5g/edit?utm_content=DAHB4ImxhzQ&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton",
   "contactHeroImage": "/store/uploads/1772221336764-u2wdcr.webp"
 }

@@ -801,12 +801,12 @@
       }, 300);
     }
 
-    let storeSettings = { whatsapp: '573046601648' };
+    window.storeSettings = { whatsapp: '573046601648' };
     async function loadSettings() {
       try {
         const res = await fetch('/api/settings');
         const data = await res.json();
-        storeSettings = data;
+        window.storeSettings = data;
         if (data.aboutUsTitle) {
           const titleElem = document.getElementById('aboutTitle');
           if (titleElem) titleElem.textContent = data.aboutUsTitle;

@@ -459,6 +459,26 @@
             </div>
 
             <div class="p-6 bg-primary/5 rounded-xl border border-primary/10">
+              <h3 class="font-bold text-sm text-primary uppercase tracking-wider mb-4">Números de WhatsApp</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label class="block">WhatsApp 1 (Obligatorio)
+                  <input id="lbWhatsapp1" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                    placeholder="573046601648">
+                </label>
+                <div class="space-y-2">
+                  <label class="block">WhatsApp 2 (Opcional)
+                    <input id="lbWhatsapp2" class="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-800"
+                      placeholder="57...">
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="lbWhatsapp2Active" class="rounded text-primary focus:ring-primary">
+                    <span class="text-sm font-semibold">Activar segundo número</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-6 bg-primary/5 rounded-xl border border-primary/10">
               <h3 class="font-bold text-sm text-primary uppercase tracking-wider mb-4">Foto de Perfil</h3>
               <input type="file" id="lbProfileImageInput"
                 class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer">
@@ -529,11 +549,22 @@
               class="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 space-y-4">
               <h3 class="text-sm font-black uppercase tracking-[0.2em] text-primary mb-4">Canales Oficiales</h3>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label class="block">WhatsApp (ej: 573046601648)
-                  <input id="setWhatsapp"
+                <label class="block">WhatsAppPrincipal (Obligatorio)
+                  <input id="setWhatsapp1"
                     class="w-full mt-2 p-4 border-none rounded-xl bg-white dark:bg-slate-800 shadow-sm focus:ring-2 focus:ring-primary transition-all"
                     placeholder="57...">
                 </label>
+                <div class="space-y-4">
+                  <label class="block">WhatsApp Secundario (Opcional)
+                    <input id="setWhatsapp2"
+                      class="w-full mt-2 p-1.5 md:p-4 border-none rounded-xl bg-white dark:bg-slate-800 shadow-sm focus:ring-2 focus:ring-primary transition-all"
+                      placeholder="57...">
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer ml-1">
+                    <input type="checkbox" id="setWhatsapp2Active" class="rounded text-primary focus:ring-primary">
+                    <span class="text-sm font-semibold">Activar segundo número</span>
+                  </label>
+                </div>
                 <label class="block">Email de Soporte
                   <input id="setContactEmail"
                     class="w-full mt-2 p-4 border-none rounded-xl bg-white dark:bg-slate-800 shadow-sm focus:ring-2 focus:ring-primary transition-all"
@@ -1148,7 +1179,9 @@
       try {
         const res = await fetch('/api/settings');
         const data = await res.json();
-        document.getElementById('setWhatsapp').value = data.whatsapp || '';
+        document.getElementById('setWhatsapp1').value = data.whatsapp1 || '';
+        document.getElementById('setWhatsapp2').value = data.whatsapp2 || '';
+        document.getElementById('setWhatsapp2Active').checked = !!data.whatsapp2Active;
         document.getElementById('setAboutTitle').value = data.aboutUsTitle || '';
         document.getElementById('setAboutText').value = data.aboutUsText || '';
         document.getElementById('setContactEmail').value = data.contactEmail || '';
@@ -1171,7 +1204,9 @@
     document.getElementById('settingsForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const fd = new FormData();
-      fd.append('whatsapp', document.getElementById('setWhatsapp').value);
+      fd.append('whatsapp1', document.getElementById('setWhatsapp1').value);
+      fd.append('whatsapp2', document.getElementById('setWhatsapp2').value);
+      fd.append('whatsapp2Active', document.getElementById('setWhatsapp2Active').checked);
       fd.append('aboutUsTitle', document.getElementById('setAboutTitle').value);
       fd.append('aboutUsText', document.getElementById('setAboutText').value);
       fd.append('contactEmail', document.getElementById('setContactEmail').value);
@@ -1265,6 +1300,9 @@
         document.getElementById('lbCatalogUrl').value = data.catalogUrl || '';
         document.getElementById('lbGalleryTitle').value = data.galleryTitle || '';
         document.getElementById('lbGalleryLabel').value = data.galleryLabel || '';
+        document.getElementById('lbWhatsapp1').value = data.whatsapp1 || '';
+        document.getElementById('lbWhatsapp2').value = data.whatsapp2 || '';
+        document.getElementById('lbWhatsapp2Active').checked = !!data.whatsapp2Active;
 
         const container = document.getElementById('lbSocialLinksContainer');
         container.innerHTML = '';
@@ -1314,6 +1352,9 @@
       fd.append('catalogUrl', document.getElementById('lbCatalogUrl').value);
       fd.append('galleryTitle', document.getElementById('lbGalleryTitle').value);
       fd.append('galleryLabel', document.getElementById('lbGalleryLabel').value);
+      fd.append('whatsapp1', document.getElementById('lbWhatsapp1').value);
+      fd.append('whatsapp2', document.getElementById('lbWhatsapp2').value);
+      fd.append('whatsapp2Active', document.getElementById('lbWhatsapp2Active').checked);
 
       const links = [];
       document.querySelectorAll('#lbSocialLinksContainer > div').forEach(div => {
