@@ -1,9 +1,9 @@
 node_modules/
 .env
 
-# Ignorar bases de datos locales (Esto evita que tus pruebas locales borren lo de producción)
-store/data/products.json
-store/data/home.json
-
-# Ignorar imágenes subidas localmente
+# Ignorar imágenes subidas localmente (en Railway estas van al Volume)
 store/uploads/*
+
+# NO ignoramos los archivos .json de datos:
+# Son la semilla inicial que se copia al Volume en el primer deploy.
+# Una vez copiados, Railway solo lee/escribe del Volume y el repo no los pisa.

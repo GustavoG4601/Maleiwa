@@ -12,13 +12,62 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-const DATA_DIR = path.join(__dirname, 'store', 'data');
-const UPLOADS_DIR = path.join(__dirname, 'store', 'uploads');
+// --- Persistent Storage Setup ---
+// In production (Railway), DATA_DIR and UPLOADS_DIR point to a mounted Volume.
+// This keeps user data (products, settings, images) safe across deploys.
+// Locally, it falls back to store/data and store/uploads as before.
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'store', 'data');
+const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, 'store', 'uploads');
+const SEED_DIR = path.join(__dirname, 'store', 'data'); // always in-repo seed files
+
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
+// On first deploy, copy seed files from repo into the persistent volume (if not already there)
+function seedFileIfMissing(filename, defaultContent) {
+  const dest = path.join(DATA_DIR, filename);
+  if (!fs.existsSync(dest)) {
+    const seed = path.join(SEED_DIR, filename);
+    if (fs.existsSync(seed)) {
+      fs.copyFileSync(seed, dest);
+      console.log(`[Seed] Copied ${filename} to persistent storage.`);
+    } else {
+      fs.writeFileSync(dest, JSON.stringify(defaultContent, null, 2));
+      console.log(`[Seed] Created default ${filename} in persistent storage.`);
+    }
+  }
+}
+
+// Seed all data files — only runs on first deploy (files missing in volume)
+seedFileIfMissing('products.json', {});
+seedFileIfMissing('settings.json', {
+  whatsapp1: '573046601648', whatsapp2: '', whatsapp2Active: false,
+  shippingFee: 0, aboutUsTitle: '¿Quiénes somos?',
+  aboutUsText: 'Maleiwa es una marca de moda consciente y minimalista inspirada en la naturaleza.',
+  contactEmail: 'hola@maleiwa.com', contactInstagram: '@soy.maleiwa',
+  contactTiktok: '@soy.maleiwa', contactCareersUrl: '#'
+});
+seedFileIfMissing('linkbio.json', {
+  profileName: 'Maleiwa', profileUsername: '@soy.maleiwa',
+  profileBio: 'Moda consciente y minimalista inspirada en la naturaleza.',
+  profileLink: 'https://instagram.com/soy.maleiwa', profileImage: 'imagen1.webp',
+  socialLinks: [
+    { id: 1, name: 'Instagram', url: 'https://instagram.com/soy.maleiwa', active: true },
+    { id: 2, name: 'TikTok', url: 'https://www.tiktok.com/@soy.maleiwa', active: true }
+  ],
+  galleryTitle: 'Colección', galleryImage: 'esencia caribe.webp',
+  galleryLabel: 'Esencia', catalogUrl: '#',
+  whatsapp1: '', whatsapp2: '', whatsapp2Active: false
+});
+seedFileIfMissing('home.json', {
+  heroSubtitle: 'Edición Limitada', heroTitleMain: 'Nueva Colección',
+  heroTitleAccent: 'Esencia Caribe', heroDescription: 'Inspirada en la naturaleza',
+  actionDescription: '"Texturas orgánicas y tonos que conectan con nuestras raíces más profundas."',
+  actionButtonText: 'Explorar Colección', teaser1Text: 'Texturas', teaser2Text: 'Siluetas'
+});
+seedFileIfMissing('admin.json', { username: 'admin', password: 'admin', token: 'admin_secret' });
+
 const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
-if (!fs.existsSync(PRODUCTS_FILE)) fs.writeFileSync(PRODUCTS_FILE, JSON.stringify({}, null, 2));
 
 // dynamic product meta for social sharing
 app.get('/store/product.html', (req, res) => {
