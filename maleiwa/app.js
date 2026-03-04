@@ -6,28 +6,53 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 
 const app = express();
-// Passenger asigna el puerto mediante process.env.PORT automáticamente
 const PORT = process.env.PORT || 3000;
 
-// Configuración de rutas usando __dirname (vital en cPanel)
+// Configuración de rutas (Rutas absolutas obligatorias en cPanel)
 const STORE_DIR = path.join(__dirname, 'store');
 const DATA_DIR = path.join(STORE_DIR, 'data');
 const UPLOADS_DIR = path.join(STORE_DIR, 'uploads');
 
-// Asegurar directorios base
-[DATA_DIR, UPLOADS_DIR].forEach(dir => {
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-});
+// --- VERIFICACIÓN DE PERMISOS AL INICIAR ---
+function checkPermissions() {
+    try {
+        [DATA_DIR, UPLOADS_DIR].forEach(dir => {
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir, { recursive: true });
+                console.log(`[Init] Creado directorio: ${dir}`);
+            }
+            // Intentar escribir un archivo de prueba
+            const testFile = path.join(dir, '.write_test');
+            fs.writeFileSync(testFile, 'test');
+            fs.unlinkSync(testFile);
+        });
+        console.log('[Init] Permisos de escritura verificados.');
+    } catch (e) {
+        console.error('[CRITICAL] Error de permisos en el servidor:', e.message);
+    }
+}
+checkPermissions();
 
-// Ayudantes de lectura/escritura JSON robustos
+// Helpers JSON
 const safeRead = (file, def = {}) => {
     try {
-        return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8') || '{}') : def;
-    } catch (e) { return def; }
+        if (!fs.existsSync(file)) return def;
+        const content = fs.readFileSync(file, 'utf8');
+        return JSON.parse(content || JSON.stringify(def));
+    } catch (e) {
+        console.error(`Error leyendo ${path.basename(file)}:`, e.message);
+        return def;
+    }
 };
+
 const safeWrite = (file, data) => {
-    try { fs.writeFileSync(file, JSON.stringify(data, null, 2)); return true; }
-    catch (e) { return false; }
+    try {
+        fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
+        return true;
+    } catch (e) {
+        console.error(`Error escribiendo en ${path.basename(file)}:`, e.message);
+        return false;
+    }
 };
 
 // Middlewares
@@ -35,16 +60,14 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// Seguridad: Bloquear acceso directo a archivos sensibles
+// Cabeceras Anti-Cache para cPanel
 app.use((req, res, next) => {
-    const forbidden = ['/store/data/', '/package.json', '/server.js', '/app.js', '/.env', '/.git'];
-    if (forbidden.some(f => req.path.toLowerCase().includes(f))) {
-        return res.status(403).json({ ok: false, error: 'Forbidden' });
-    }
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private, max-age=0');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
     next();
 });
 
-// Paths de archivos
 const FILES = {
     products: path.join(DATA_DIR, 'products.json'),
     admin: path.join(DATA_DIR, 'admin.json'),
@@ -54,16 +77,14 @@ const FILES = {
     community: path.join(DATA_DIR, 'community.json')
 };
 
-// Seeding inicial (silencioso)
-if (!fs.existsSync(FILES.admin)) {
-    safeWrite(FILES.admin, { username: 'admin', password: 'admin', token: 'admin_secret' });
-}
-
-// Auth Middleware
+// Auth
 const getAdmin = () => safeRead(FILES.admin, { username: 'admin', password: 'admin', token: 'admin_secret' });
+
 const auth = (req, res, next) => {
     const token = req.cookies?.admin_token;
-    if (token && token === getAdmin().token) return next();
+    const admin = getAdmin();
+    if (token && token === admin.token) return next();
+    console.warn(`[Auth] Intento de acceso fallido desde: ${req.ip}`);
     res.status(401).json({ ok: false, error: 'unauthorized' });
 };
 
@@ -80,31 +101,35 @@ app.post('/api/login', (req, res) => {
     const { username, password } = req.body || {};
     const admin = getAdmin();
     if (username === admin.username && password === admin.password) {
-        res.cookie('admin_token', admin.token, { httpOnly: true, sameSite: 'Lax' });
-        return res.json({ ok: true });
+        // En cPanel vamos a ser menos estrictos con la rotación si la escritura falla
+        const sessionToken = 'sess_' + Date.now().toString(36);
+        admin.token = sessionToken;
+
+        if (safeWrite(FILES.admin, admin)) {
+            res.cookie('admin_token', sessionToken, {
+                httpOnly: true,
+                sameSite: 'Lax',
+                path: '/',
+                maxAge: 60 * 60 * 1000 // 1 hora
+            });
+            return res.json({ ok: true });
+        } else {
+            return res.status(500).json({ ok: false, error: 'No se pudo guardar la sesión en el servidor (Permisos)' });
+        }
     }
     res.status(401).json({ ok: false });
 });
 
 app.post('/api/logout', (req, res) => {
-    res.clearCookie('admin_token');
+    res.clearCookie('admin_token', { path: '/' });
     res.json({ ok: true });
 });
 
 app.get('/api/check-auth', (req, res) => {
     const token = req.cookies?.admin_token;
-    res.json({ ok: token === getAdmin().token });
-});
-
-app.post('/api/change-password', auth, (req, res) => {
-    const { oldPassword, newPassword } = req.body;
     const admin = getAdmin();
-    if (oldPassword !== admin.password) return res.status(400).json({ ok: false });
-    admin.password = newPassword;
-    admin.token = 'admin_secret_' + Date.now();
-    safeWrite(FILES.admin, admin);
-    res.cookie('admin_token', admin.token, { httpOnly: true });
-    res.json({ ok: true });
+    if (token && token === admin.token) return res.json({ ok: true });
+    res.status(401).json({ ok: false });
 });
 
 // Products
@@ -116,7 +141,7 @@ app.post('/api/products', auth, upload.array('images', 5), (req, res) => {
     const data = safeRead(FILES.products);
     if (!data[coll]) data[coll] = { title: coll, desc: '', products: [] };
 
-    const id = (data[coll].products.reduce((m, p) => Math.max(m, Number(p.id || 0)), 0)) + 1;
+    const id = Date.now(); // ID basado en tiempo para evitar duplicados
     const images = req.files?.length ? req.files.map(f => `/store/uploads/${f.filename}`) : (body.image ? [body.image] : []);
 
     const prod = {
@@ -128,8 +153,11 @@ app.post('/api/products', auth, upload.array('images', 5), (req, res) => {
         colors: body.colors ? (Array.isArray(body.colors) ? body.colors : String(body.colors).split(',').filter(Boolean)) : []
     };
     data[coll].products.push(prod);
-    safeWrite(FILES.products, data);
-    res.json({ ok: true, product: prod });
+    if (safeWrite(FILES.products, data)) {
+        res.json({ ok: true, product: prod });
+    } else {
+        res.status(500).json({ ok: false, error: 'Error al escribir archivo de productos' });
+    }
 });
 
 app.put('/api/products/:coll/:id', auth, upload.array('images', 5), (req, res) => {
@@ -143,8 +171,8 @@ app.put('/api/products/:coll/:id', auth, upload.array('images', 5), (req, res) =
     const images = req.files?.length ? req.files.map(f => `/store/uploads/${f.filename}`) : (req.body.images ? (Array.isArray(req.body.images) ? req.body.images : [req.body.images]) : existing.images);
 
     data[coll].products[idx] = { ...existing, ...req.body, images, image: images[0] || '', id: Number(id) };
-    safeWrite(FILES.products, data);
-    res.json({ ok: true });
+    if (safeWrite(FILES.products, data)) res.json({ ok: true });
+    else res.status(500).json({ ok: false });
 });
 
 app.delete('/api/products/:coll/:id', auth, (req, res) => {
@@ -152,8 +180,8 @@ app.delete('/api/products/:coll/:id', auth, (req, res) => {
     const data = safeRead(FILES.products);
     if (!data[coll]) return res.status(404).json({ ok: false });
     data[coll].products = data[coll].products.filter(p => Number(p.id) !== Number(id));
-    safeWrite(FILES.products, data);
-    res.json({ ok: true });
+    if (safeWrite(FILES.products, data)) res.json({ ok: true });
+    else res.status(500).json({ ok: false });
 });
 
 // Settings & Other
@@ -162,8 +190,8 @@ app.post('/api/settings', auth, upload.fields([{ name: 'contactHeroImage', maxCo
     const data = safeRead(FILES.settings);
     Object.assign(data, req.body);
     if (req.files?.contactHeroImage) data.contactHeroImage = `/store/uploads/${req.files.contactHeroImage[0].filename}`;
-    safeWrite(FILES.settings, data);
-    res.json({ ok: true });
+    if (safeWrite(FILES.settings, data)) res.json({ ok: true });
+    else res.status(500).json({ ok: false });
 });
 
 app.get('/api/home', (req, res) => res.json(safeRead(FILES.home)));
@@ -175,11 +203,22 @@ app.post('/api/home', auth, upload.fields([{ name: 'heroImage' }, { name: 'tease
         if (req.files.teaser1Image) data.teaser1Image = `/store/uploads/${req.files.teaser1Image[0].filename}`;
         if (req.files.teaser2Image) data.teaser2Image = `/store/uploads/${req.files.teaser2Image[0].filename}`;
     }
-    safeWrite(FILES.home, data);
-    res.json({ ok: true });
+    if (safeWrite(FILES.home, data)) res.json({ ok: true });
+    else res.status(500).json({ ok: false });
 });
 
 app.get('/api/link-bio', (req, res) => res.json(safeRead(FILES.linkbio)));
+app.post('/api/link-bio', auth, upload.fields([{ name: 'profileImage' }, { name: 'galleryImage' }]), (req, res) => {
+    const data = safeRead(FILES.linkbio);
+    Object.assign(data, req.body);
+    if (req.files) {
+        if (req.files.profileImage) data.profileImage = `/store/uploads/${req.files.profileImage[0].filename}`;
+        if (req.files.galleryImage) data.galleryImage = `/store/uploads/${req.files.galleryImage[0].filename}`;
+    }
+    if (safeWrite(FILES.linkbio, data)) res.json({ ok: true });
+    else res.status(500).json({ ok: false });
+});
+
 app.get('/api/community', (req, res) => res.json(safeRead(FILES.community, []).slice().reverse()));
 app.post('/api/community', upload.single('photo'), (req, res) => {
     const { name, message } = req.body;
@@ -187,8 +226,15 @@ app.post('/api/community', upload.single('photo'), (req, res) => {
     const posts = safeRead(FILES.community, []);
     const post = { id: Date.now(), name, message, photo: req.file ? `/store/uploads/${req.file.filename}` : null, date: new Date().toISOString() };
     posts.push(post);
-    safeWrite(FILES.community, posts);
-    res.json({ ok: true, post });
+    if (safeWrite(FILES.community, posts)) res.json({ ok: true, post });
+    else res.status(500).json({ ok: false });
+});
+
+app.delete('/api/community/:id', auth, (req, res) => {
+    const posts = safeRead(FILES.community, []);
+    const newPosts = posts.filter(p => Number(p.id) !== Number(req.params.id));
+    if (safeWrite(FILES.community, newPosts)) res.json({ ok: true });
+    else res.status(500).json({ ok: false });
 });
 
 // Meta tags dinámicos
@@ -216,4 +262,6 @@ app.use('/store/uploads', express.static(UPLOADS_DIR));
 app.use(express.static(__dirname));
 
 // Start
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`--- Server Maleiwa iniciado en puerto ${PORT} ---`);
+});

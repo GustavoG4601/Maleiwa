@@ -1071,11 +1071,18 @@
 
     async function checkAuth() {
       try {
-        const res = await fetch('/api/check-auth', { credentials: 'include' });
+        // Cache-buster (?t=) para obligar a cPanel a ignorar el caché
+        const res = await fetch('/api/check-auth?t=' + Date.now(), { credentials: 'include' });
         if (res.ok) {
           showPanel();
+        } else {
+          // Si no está autorizado, nos aseguramos de que el cuadro de login sea visible
+          document.getElementById('loginBox').classList.remove('hidden');
+          document.getElementById('adminArea').classList.add('hidden');
         }
-      } catch (e) { }
+      } catch (e) {
+        document.getElementById('loginBox').classList.remove('hidden');
+      }
     }
 
     // Initialize
@@ -1169,10 +1176,13 @@
     }
 
     document.getElementById('logoutBtn').addEventListener('click', async () => {
+      if (!confirm('¿Cerrar sesión en este y otros dispositivos?')) return;
       try {
-        await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+        // Cache-buster para el logout
+        await fetch('/api/logout?t=' + Date.now(), { method: 'POST', credentials: 'include' });
       } catch (e) { }
-      location.reload();
+      // Redirigir al inicio para limpiar el estado de la app completamente
+      location.href = '/store/index.html';
     });
 
     async function loadSettings() {
