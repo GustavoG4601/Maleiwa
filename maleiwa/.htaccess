@@ -1,0 +1,17 @@
+# Rewrite rules for Node.js App
+RewriteEngine On
+
+# Redirect to HTTPS (Optional but recommended)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Point all requests to the Node.js application
+# Note: This is sometimes handled by cPanel Node.js Selector automatically.
+# But if it's not, or if you are using Passenger manually:
+RewriteRule ^$ http://127.0.0.1:3000/ [P,L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+
+# Prevent directory listing
+Options -Indexes

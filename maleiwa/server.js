@@ -6,39 +6,80 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 
 const app = express();
+// Passenger asigna el puerto mediante process.env.PORT
 const PORT = process.env.PORT || 3000;
 
+// --- Configuración de Rutas Robustas ---
+// Forzamos rutas absolutas usando __dirname para evitar errores en hosting compartido
+const STORE_DIR = path.join(__dirname, 'store');
+const DATA_DIR = path.join(STORE_DIR, 'data');
+const UPLOADS_DIR = path.join(STORE_DIR, 'uploads');
+
+// Asegurar que existan los directorios
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+// --- Helpers para Manejo de JSON Seguro ---
+function safeReadJSON(filePath, defaultVal = {}) {
+  try {
+    if (!fs.existsSync(filePath)) return defaultVal;
+    const content = fs.readFileSync(filePath, 'utf8');
+    return JSON.parse(content || JSON.stringify(defaultVal));
+  } catch (err) {
+    console.error(`Error leyendo archivo JSON en ${filePath}:`, err);
+    return defaultVal;
+  }
+}
+
+function safeWriteJSON(filePath, data) {
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+    return true;
+  } catch (err) {
+    console.error(`Error escribiendo archivo JSON en ${filePath}:`, err);
+    return false;
+  }
+}
+
+// --- Middlewares Iniciales ---
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// --- Persistent Storage Setup ---
-// In production (Railway), DATA_DIR and UPLOADS_DIR point to a mounted Volume.
-// This keeps user data (products, settings, images) safe across deploys.
-// Locally, it falls back to store/data and store/uploads as before.
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'store', 'data');
-const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, 'store', 'uploads');
-const SEED_DIR = path.join(__dirname, 'store', 'data'); // always in-repo seed files
+// Bloque de Seguridad: Prohibir acceso a archivos sensibles
+app.use((req, res, next) => {
+  const forbidden = [
+    '/store/data/',
+    '/package.json',
+    '/package-lock.json',
+    '/.git',
+    '/.env',
+    '/server.js',
+    '/railway.json'
+  ];
+  const url = req.path.toLowerCase();
+  if (forbidden.some(f => url.includes(f.toLowerCase()))) {
+    return res.status(403).json({ ok: false, error: 'Acceso denegado' });
+  }
+  next();
+});
 
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-
-// On first deploy, copy seed files from repo into the persistent volume (if not already there)
+// --- Inicialización de Datos (Seeding) ---
 function seedFileIfMissing(filename, defaultContent) {
   const dest = path.join(DATA_DIR, filename);
   if (!fs.existsSync(dest)) {
-    const seed = path.join(SEED_DIR, filename);
-    if (fs.existsSync(seed)) {
-      fs.copyFileSync(seed, dest);
-      console.log(`[Seed] Copied ${filename} to persistent storage.`);
+    // Intentar copiar de la versión original en el repositorio si existe
+    const seedSource = path.join(__dirname, 'store', 'data', filename);
+    if (fs.existsSync(seedSource) && seedSource !== dest) {
+      fs.copyFileSync(seedSource, dest);
+      console.log(`[Seed] Copiado ${filename} desde repositorio.`);
     } else {
-      fs.writeFileSync(dest, JSON.stringify(defaultContent, null, 2));
-      console.log(`[Seed] Created default ${filename} in persistent storage.`);
+      safeWriteJSON(dest, defaultContent);
+      console.log(`[Seed] Creado ${filename} con valores por defecto.`);
     }
   }
 }
 
-// Seed all data files — only runs on first deploy (files missing in volume)
 seedFileIfMissing('products.json', {});
 seedFileIfMissing('settings.json', {
   whatsapp1: '573046601648', whatsapp2: '', whatsapp2Active: false,
@@ -66,146 +107,29 @@ seedFileIfMissing('home.json', {
   actionButtonText: 'Explorar Colección', teaser1Text: 'Texturas', teaser2Text: 'Siluetas'
 });
 seedFileIfMissing('admin.json', { username: 'admin', password: 'admin', token: 'admin_secret' });
+seedFileIfMissing('community.json', []);
 
+// --- Rutas de Archivos (Paths fijas) ---
 const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
-
-// dynamic product meta for social sharing
-app.get('/store/product.html', (req, res) => {
-  try {
-    const { collection, product: productId } = req.query;
-    let html = fs.readFileSync(path.join(__dirname, 'store', 'product.html'), 'utf8');
-
-    if (collection && productId) {
-      const productsRaw = fs.readFileSync(PRODUCTS_FILE, 'utf8');
-      const productsData = JSON.parse(productsRaw || '{}');
-      const coll = productsData[collection];
-      if (coll && coll.products) {
-        const prod = coll.products.find(p => Number(p.id) === Number(productId));
-        if (prod) {
-          const title = `Maleiwa | ${prod.name}`;
-          const desc = prod.description || `Precio: ${prod.price} - Color: ${prod.color}. Descubre más en Maleiwa.`;
-
-          // Use absolute URL for the image if possible
-          const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-          const host = req.get('host');
-          const imageUrl = prod.image.startsWith('http') ? prod.image : `${protocol}://${host}${prod.image}`;
-
-          html = html.replace('Maleiwa | Producto', title);
-          html = html.replace('<meta property="og:title" content="Maleiwa | Producto" />', `<meta property="og:title" content="${title}" />`);
-          html = html.replace('<meta property="og:description" content="Descubre nuestra colección de moda consciente inspirada en la naturaleza." />', `<meta property="og:description" content="${desc}" />`);
-          html = html.replace('<meta property="og:image" content="/store/logo.webp" />', `<meta property="og:image" content="${imageUrl}" />`);
-        }
-      }
-    }
-    res.send(html);
-  } catch (e) {
-    console.error('Error serving dynamic meta:', e);
-    res.sendFile(path.join(__dirname, 'store', 'product.html'));
-  }
-});
-
-
-
-// serve static site
-// Block sensitive files/folders FIRST
-app.use((req, res, next) => {
-  const forbidden = [
-    '/store/data/',
-    '/package.json',
-    '/package-lock.json',
-    '/.git',
-    '/.env',
-    '/server.js'
-  ];
-  if (forbidden.some(f => req.path.toLowerCase().includes(f.toLowerCase()))) {
-    return res.status(403).send('Acceso denegado');
-  }
-  next();
-});
-
-// Explicitly serve uploads first
-app.use('/store/uploads', express.static(UPLOADS_DIR));
-
-// Serve everything else
-app.use('/', express.static(__dirname));
-
-
-
 const ADMIN_FILE = path.join(DATA_DIR, 'admin.json');
-if (!fs.existsSync(ADMIN_FILE)) {
-  fs.writeFileSync(ADMIN_FILE, JSON.stringify({
-    username: 'admin',
-    password: 'admin',
-    token: 'admin_secret'
-  }, null, 2));
-}
+const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
+const HOME_FILE = path.join(DATA_DIR, 'home.json');
+const LINKBIO_FILE = path.join(DATA_DIR, 'linkbio.json');
+const COMMUNITY_FILE = path.join(DATA_DIR, 'community.json');
 
+// --- Auth Middleware ---
 function getAdmin() {
-  const raw = fs.readFileSync(ADMIN_FILE, 'utf8');
-  return JSON.parse(raw);
+  return safeReadJSON(ADMIN_FILE, { username: 'admin', password: 'admin', token: 'admin_secret' });
 }
-
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body || {};
-  const admin = getAdmin();
-  if (username === admin.username && password === admin.password) {
-    res.cookie('admin_token', admin.token, { httpOnly: true, sameSite: 'Lax' });
-    return res.json({ ok: true });
-  }
-  res.status(401).json({ ok: false });
-});
-
-app.post('/api/logout', (req, res) => {
-  res.clearCookie('admin_token', { httpOnly: true, sameSite: 'Lax' });
-  res.json({ ok: true });
-});
-
-app.post('/api/change-password', authMiddleware, (req, res) => {
-  try {
-    const { oldPassword, newPassword } = req.body;
-    const admin = getAdmin();
-    if (oldPassword !== admin.password) {
-      return res.status(400).json({ ok: false, error: 'La contraseña actual es incorrecta' });
-    }
-    admin.password = newPassword;
-    // Generate a new token to invalidate old sessions if desired, or keep fixed
-    admin.token = 'admin_secret_' + Date.now();
-    fs.writeFileSync(ADMIN_FILE, JSON.stringify(admin, null, 2), 'utf8');
-
-    // Set new cookie for current session
-    res.cookie('admin_token', admin.token, { httpOnly: true, sameSite: 'Lax' });
-    res.json({ ok: true });
-  } catch (e) {
-    res.status(500).json({ ok: false });
-  }
-});
 
 function authMiddleware(req, res, next) {
   const token = req.cookies && req.cookies.admin_token;
   const admin = getAdmin();
-  if (token === admin.token) return next();
+  if (token && token === admin.token) return next();
   return res.status(401).json({ ok: false, error: 'unauthorized' });
 }
 
-app.get('/api/check-auth', (req, res) => {
-  const token = req.cookies && req.cookies.admin_token;
-  const admin = getAdmin();
-  if (token === admin.token) return res.json({ ok: true });
-  res.status(401).json({ ok: false });
-});
-
-// get products
-app.get('/api/products', (req, res) => {
-  try {
-    const raw = fs.readFileSync(PRODUCTS_FILE, 'utf8');
-    const data = JSON.parse(raw || '{}');
-    res.json(data);
-  } catch (e) {
-    res.json({});
-  }
-});
-
-// multer for uploads
+// --- Multer para Cargas Automáticas ---
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOADS_DIR),
   filename: (req, file, cb) => {
@@ -216,94 +140,91 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
-if (!fs.existsSync(SETTINGS_FILE)) {
-  fs.writeFileSync(SETTINGS_FILE, JSON.stringify({
-    whatsapp: '573046601648',
-    shippingFee: 0,
-    aboutUsTitle: '¿Quiénes somos?',
-    aboutUsText: 'Maleiwa es una marca de moda consciente y minimalista inspirada en la naturaleza.',
-    contactEmail: 'hola@maleiwa.com',
-    contactInstagram: '@maleiwa.store',
-    contactTiktok: '@maleiwa.store',
-    contactCareersUrl: '#'
-  }, null, 2));
-}
+// --- RUTAS DE API (Deben ir antes que express.static) ---
 
-app.get('/api/settings', (req, res) => {
-  try {
-    const raw = fs.readFileSync(SETTINGS_FILE, 'utf8');
-    res.json(JSON.parse(raw));
-  } catch (e) {
-    res.status(500).json({ ok: false });
+// Auth
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body || {};
+  const admin = getAdmin();
+  if (username === admin.username && password === admin.password) {
+    res.cookie('admin_token', admin.token, { httpOnly: true, sameSite: 'Lax', secure: false }); // secure: false para http si es necesario
+    return res.json({ ok: true });
   }
+  res.status(401).json({ ok: false });
 });
 
-app.post('/api/settings', authMiddleware, upload.fields([
-  { name: 'contactHeroImage', maxCount: 1 }
-]), (req, res) => {
+app.post('/api/logout', (req, res) => {
+  res.clearCookie('admin_token', { httpOnly: true, sameSite: 'Lax' });
+  res.json({ ok: true });
+});
+
+app.get('/api/check-auth', (req, res) => {
+  const token = req.cookies && req.cookies.admin_token;
+  const admin = getAdmin();
+  if (token && token === admin.token) return res.json({ ok: true });
+  res.status(401).json({ ok: false });
+});
+
+app.post('/api/change-password', authMiddleware, (req, res) => {
   try {
-    const raw = fs.readFileSync(SETTINGS_FILE, 'utf8');
-    const data = JSON.parse(raw || '{}');
-    const body = req.body || {};
-
-    // Update text fields
-    Object.keys(body).forEach(key => {
-      if (key === 'whatsapp2Active') {
-        data[key] = body[key] === 'true';
-      } else {
-        data[key] = body[key];
-      }
-    });
-
-    // Handle uploaded file
-    if (req.files && req.files.contactHeroImage) {
-      data.contactHeroImage = `/store/uploads/${req.files.contactHeroImage[0].filename}`;
+    const { oldPassword, newPassword } = req.body;
+    const admin = getAdmin();
+    if (oldPassword !== admin.password) {
+      return res.status(400).json({ ok: false, error: 'La contraseña actual es incorrecta' });
     }
-
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(data, null, 2), 'utf8');
-    res.json({ ok: true, data });
+    admin.password = newPassword;
+    admin.token = 'admin_secret_' + Date.now();
+    safeWriteJSON(ADMIN_FILE, admin);
+    res.cookie('admin_token', admin.token, { httpOnly: true, sameSite: 'Lax' });
+    res.json({ ok: true });
   } catch (e) {
-    console.error(e);
     res.status(500).json({ ok: false });
   }
 });
 
-// add product (protected)
+// Products
+app.get('/api/products', (req, res) => {
+  const data = safeReadJSON(PRODUCTS_FILE, {});
+  res.json(data);
+});
+
 app.post('/api/products', authMiddleware, upload.array('images', 5), (req, res) => {
   try {
     const body = req.body || {};
     const collection = body.collection || 'esencia';
-    const name = body.name || 'Sin nombre';
-    const price = body.price || '$0';
-    const oldPrice = body.oldPrice || '';
-    const color = body.color || '';
-    const material = body.material || '';
-    const description = body.description || '';
-    const specs = body.specs ? (Array.isArray(body.specs) ? body.specs : String(body.specs).split('\n').map(s => s.trim()).filter(Boolean)) : [];
-    const sizes = body.sizes ? (Array.isArray(body.sizes) ? body.sizes : String(body.sizes).split(',').map(s => s.trim()).filter(Boolean)) : [];
-    const colors = body.colors ? (Array.isArray(body.colors) ? body.colors : String(body.colors).split(',').map(s => s.trim()).filter(Boolean)) : [];
+    const data = safeReadJSON(PRODUCTS_FILE, {});
+
+    if (!data[collection]) data[collection] = { title: collection, desc: '', products: [] };
+    const products = data[collection].products || [];
+
+    const maxId = products.reduce((m, p) => Math.max(m, Number(p.id || 0)), 0);
+    const newId = maxId + 1;
 
     let images = [];
     if (req.files && req.files.length > 0) {
       images = req.files.map(f => `/store/uploads/${f.filename}`);
     } else if (body.image) {
       images = [body.image];
-    } else if (body.images) {
-      images = Array.isArray(body.images) ? body.images : [body.images];
     }
 
-    const raw = fs.readFileSync(PRODUCTS_FILE, 'utf8');
-    const data = JSON.parse(raw || '{}');
-    if (!data[collection]) data[collection] = { title: collection, desc: '', products: [] };
-    const products = data[collection].products || [];
-    const maxId = products.reduce((m, p) => Math.max(m, Number(p.id || 0)), 0);
-    const newId = maxId + 1 || products.length + 1;
+    const prod = {
+      id: newId,
+      name: body.name || 'Sin nombre',
+      price: body.price || '$0',
+      oldPrice: body.oldPrice || '',
+      image: images[0] || '',
+      images,
+      color: body.color || '',
+      material: body.material || '',
+      description: body.description || '',
+      specs: body.specs ? (Array.isArray(body.specs) ? body.specs : String(body.specs).split('\n').map(s => s.trim()).filter(Boolean)) : [],
+      sizes: body.sizes ? (Array.isArray(body.sizes) ? body.sizes : String(body.sizes).split(',').map(s => s.trim()).filter(Boolean)) : [],
+      colors: body.colors ? (Array.isArray(body.colors) ? body.colors : String(body.colors).split(',').map(s => s.trim()).filter(Boolean)) : []
+    };
 
-    const prod = { id: newId, name, price, oldPrice, image: images[0] || '', images, color, material, description, specs, sizes, colors };
     products.push(prod);
     data[collection].products = products;
-    fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(data, null, 2), 'utf8');
+    safeWriteJSON(PRODUCTS_FILE, data);
     res.json({ ok: true, product: prod });
   } catch (e) {
     console.error(e);
@@ -311,140 +232,115 @@ app.post('/api/products', authMiddleware, upload.array('images', 5), (req, res) 
   }
 });
 
-// update product (protected)
 app.put('/api/products/:collection/:id', authMiddleware, upload.array('images', 5), (req, res) => {
   try {
     const { collection, id } = req.params;
-    const productId = Number(id);
     const body = req.body || {};
-
-    const raw = fs.readFileSync(PRODUCTS_FILE, 'utf8');
-    const data = JSON.parse(raw || '{}');
+    const data = safeReadJSON(PRODUCTS_FILE, {});
 
     if (!data[collection] || !data[collection].products) {
       return res.status(404).json({ ok: false, error: 'Collection not found' });
     }
 
-    const idx = data[collection].products.findIndex(p => Number(p.id) === productId);
+    const idx = data[collection].products.findIndex(p => Number(p.id) === Number(id));
     if (idx === -1) return res.status(404).json({ ok: false, error: 'Product not found' });
 
     const existing = data[collection].products[idx];
+    let images = existing.images || [existing.image];
 
-    const name = body.name || existing.name;
-    const price = body.price || existing.price;
-    const oldPrice = body.oldPrice !== undefined ? body.oldPrice : existing.oldPrice;
-    const color = body.color || existing.color;
-    const material = body.material || existing.material;
-    const description = body.description || existing.description;
-    const specs = body.specs ? (Array.isArray(body.specs) ? body.specs : String(body.specs).split('\n').map(s => s.trim()).filter(Boolean)) : existing.specs;
-    const sizes = body.sizes ? (Array.isArray(body.sizes) ? body.sizes : String(body.sizes).split(',').map(s => s.trim()).filter(Boolean)) : existing.sizes;
-    const colors = body.colors ? (Array.isArray(body.colors) ? body.colors : String(body.colors).split(',').map(s => s.trim()).filter(Boolean)) : existing.colors;
-
-    let images = existing.images || (existing.image ? [existing.image] : []);
-
-    // If new files uploaded, we can either append or replace. 
-    // For simplicity, if new files are uploaded, we use them.
     if (req.files && req.files.length > 0) {
       images = req.files.map(f => `/store/uploads/${f.filename}`);
     } else if (body.images) {
       images = Array.isArray(body.images) ? body.images : [body.images];
     }
 
-    const updated = { ...existing, name, price, oldPrice, image: images[0] || '', images, color, material, description, specs, sizes, colors };
-    data[collection].products[idx] = updated;
+    const updated = {
+      ...existing,
+      name: body.name || existing.name,
+      price: body.price || existing.price,
+      oldPrice: body.oldPrice !== undefined ? body.oldPrice : existing.oldPrice,
+      image: images[0] || '',
+      images,
+      color: body.color || existing.color,
+      material: body.material || existing.material,
+      description: body.description || existing.description,
+      specs: body.specs ? (Array.isArray(body.specs) ? body.specs : String(body.specs).split('\n').map(s => s.trim()).filter(Boolean)) : existing.specs,
+      sizes: body.sizes ? (Array.isArray(body.sizes) ? body.sizes : String(body.sizes).split(',').map(s => s.trim()).filter(Boolean)) : existing.sizes,
+      colors: body.colors ? (Array.isArray(body.colors) ? body.colors : String(body.colors).split(',').map(s => s.trim()).filter(Boolean)) : existing.colors
+    };
 
-    fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(data, null, 2), 'utf8');
+    data[collection].products[idx] = updated;
+    safeWriteJSON(PRODUCTS_FILE, data);
     res.json({ ok: true, product: updated });
   } catch (e) {
-    console.error(e);
     res.status(500).json({ ok: false });
   }
 });
 
-// delete product (protected)
 app.delete('/api/products/:collection/:id', authMiddleware, (req, res) => {
   try {
     const { collection, id } = req.params;
-    const productId = Number(id);
+    const data = safeReadJSON(PRODUCTS_FILE, {});
+    if (!data[collection]) return res.status(404).json({ ok: false });
 
-    const raw = fs.readFileSync(PRODUCTS_FILE, 'utf8');
-    const data = JSON.parse(raw || '{}');
+    const idx = data[collection].products.findIndex(p => Number(p.id) === Number(id));
+    if (idx === -1) return res.status(404).json({ ok: false });
 
-    if (!data[collection] || !data[collection].products) {
-      return res.status(404).json({ ok: false, error: 'Collection not found' });
-    }
-
-    const idx = data[collection].products.findIndex(p => Number(p.id) === productId);
-    if (idx === -1) {
-      console.log('Product not found:', collection, productId, data[collection].products.map(p => p.id));
-      return res.status(404).json({ ok: false, error: 'Product not found' });
-    }
-
-    const deletedProduct = data[collection].products[idx];
-    data[collection].products.splice(idx, 1);
-    fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(data, null, 2), 'utf8');
-
-    res.json({ ok: true, product: deletedProduct });
+    const deleted = data[collection].products.splice(idx, 1);
+    safeWriteJSON(PRODUCTS_FILE, data);
+    res.json({ ok: true, product: deleted[0] });
   } catch (e) {
-    console.error(e);
     res.status(500).json({ ok: false });
   }
 });
 
-// create collection (protected)
+// Settings
+app.get('/api/settings', (req, res) => {
+  res.json(safeReadJSON(SETTINGS_FILE, {}));
+});
+
+app.post('/api/settings', authMiddleware, upload.fields([{ name: 'contactHeroImage', maxCount: 1 }]), (req, res) => {
+  try {
+    const data = safeReadJSON(SETTINGS_FILE, {});
+    const body = req.body || {};
+
+    Object.keys(body).forEach(key => {
+      data[key] = key === 'whatsapp2Active' ? body[key] === 'true' : body[key];
+    });
+
+    if (req.files && req.files.contactHeroImage) {
+      data.contactHeroImage = `/store/uploads/${req.files.contactHeroImage[0].filename}`;
+    }
+
+    safeWriteJSON(SETTINGS_FILE, data);
+    res.json({ ok: true, data });
+  } catch (e) {
+    res.status(500).json({ ok: false });
+  }
+});
+
+// Collections
 app.post('/api/collections', authMiddleware, (req, res) => {
-  try {
-    const { name, title, desc } = req.body || {};
-    if (!name) return res.status(400).json({ ok: false, error: 'Name required' });
-    const raw = fs.readFileSync(PRODUCTS_FILE, 'utf8');
-    const data = JSON.parse(raw || '{}');
-    if (data[name]) return res.json({ ok: false, error: 'Collection already exists' });
-    data[name] = { title: title || name, desc: desc || '', products: [] };
-    fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(data, null, 2), 'utf8');
-    res.json({ ok: true });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ ok: false });
-  }
+  const { name, title, desc } = req.body || {};
+  if (!name) return res.status(400).json({ ok: false, error: 'Name required' });
+  const data = safeReadJSON(PRODUCTS_FILE, {});
+  if (data[name]) return res.json({ ok: false, error: 'Exists' });
+  data[name] = { title: title || name, desc: desc || '', products: [] };
+  safeWriteJSON(PRODUCTS_FILE, data);
+  res.json({ ok: true });
 });
 
-// delete collection (protected)
 app.delete('/api/collections/:name', authMiddleware, (req, res) => {
-  try {
-    const { name } = req.params;
-    const raw = fs.readFileSync(PRODUCTS_FILE, 'utf8');
-    const data = JSON.parse(raw || '{}');
-    if (!data[name]) return res.status(404).json({ ok: false, error: 'Not found' });
-    delete data[name];
-    fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(data, null, 2), 'utf8');
-    res.json({ ok: true });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ ok: false });
-  }
+  const data = safeReadJSON(PRODUCTS_FILE, {});
+  if (!data[req.params.name]) return res.status(404).json({ ok: false });
+  delete data[req.params.name];
+  safeWriteJSON(PRODUCTS_FILE, data);
+  res.json({ ok: true });
 });
 
-const HOME_FILE = path.join(DATA_DIR, 'home.json');
-if (!fs.existsSync(HOME_FILE)) {
-  fs.writeFileSync(HOME_FILE, JSON.stringify({
-    heroSubtitle: "Edición Limitada",
-    heroTitleMain: "Nueva Colección",
-    heroTitleAccent: "Esencia Caribe",
-    heroDescription: "Inspirada en la naturaleza",
-    actionDescription: "\"Texturas orgánicas y tonos que conectan con nuestras raíces más profundas.\"",
-    actionButtonText: "Explorar Colección",
-    teaser1Text: "Texturas",
-    teaser2Text: "Siluetas"
-  }, null, 2));
-}
-
+// Home
 app.get('/api/home', (req, res) => {
-  try {
-    const raw = fs.readFileSync(HOME_FILE, 'utf8');
-    res.json(JSON.parse(raw));
-  } catch (e) {
-    res.status(500).json({ ok: false });
-  }
+  res.json(safeReadJSON(HOME_FILE, {}));
 });
 
 app.post('/api/home', authMiddleware, upload.fields([
@@ -453,57 +349,26 @@ app.post('/api/home', authMiddleware, upload.fields([
   { name: 'teaser2Image', maxCount: 1 }
 ]), (req, res) => {
   try {
+    const data = safeReadJSON(HOME_FILE, {});
     const body = req.body || {};
-    const raw = fs.readFileSync(HOME_FILE, 'utf8');
-    const data = JSON.parse(raw || '{}');
+    Object.keys(body).forEach(key => data[key] = body[key]);
 
-    // Update text fields
-    Object.keys(body).forEach(key => {
-      data[key] = body[key];
-    });
-
-    // Handle uploaded files
     if (req.files) {
       if (req.files.heroImage) data.heroImage = `/store/uploads/${req.files.heroImage[0].filename}`;
       if (req.files.teaser1Image) data.teaser1Image = `/store/uploads/${req.files.teaser1Image[0].filename}`;
       if (req.files.teaser2Image) data.teaser2Image = `/store/uploads/${req.files.teaser2Image[0].filename}`;
     }
 
-    fs.writeFileSync(HOME_FILE, JSON.stringify(data, null, 2), 'utf8');
+    safeWriteJSON(HOME_FILE, data);
     res.json({ ok: true, data });
   } catch (e) {
-    console.error(e);
     res.status(500).json({ ok: false });
   }
 });
 
-const LINKBIO_FILE = path.join(DATA_DIR, 'linkbio.json');
-if (!fs.existsSync(LINKBIO_FILE)) {
-  fs.writeFileSync(LINKBIO_FILE, JSON.stringify({
-    profileName: "Maleiwa",
-    profileUsername: "@soy.maleiwa",
-    profileBio: "Moda consciente y minimalista inspirada en la naturaleza, conectada con raices y texturas orgánicas.",
-    profileLink: "https://instagram.com/soy.maleiwa",
-    profileImage: "imagen1.webp",
-    catalogUrl: "#",
-    socialLinks: [
-      { id: 1, name: "Instagram", url: "https://instagram.com/soy.maleiwa", active: true },
-      { id: 2, name: "TikTok", url: "https://www.tiktok.com/@soy.maleiwa", active: true },
-      { id: 3, name: "Facebook", url: "https://www.facebook.com/soy.maleiwa", active: true }
-    ],
-    galleryTitle: "Colección",
-    galleryImage: "esencia caribe.webp",
-    galleryLabel: "Esencia"
-  }, null, 2));
-}
-
+// Link Bio
 app.get('/api/link-bio', (req, res) => {
-  try {
-    const raw = fs.readFileSync(LINKBIO_FILE, 'utf8');
-    res.json(JSON.parse(raw));
-  } catch (e) {
-    res.status(500).json({ ok: false });
-  }
+  res.json(safeReadJSON(LINKBIO_FILE, {}));
 });
 
 app.post('/api/link-bio', authMiddleware, upload.fields([
@@ -511,19 +376,12 @@ app.post('/api/link-bio', authMiddleware, upload.fields([
   { name: 'galleryImage', maxCount: 1 }
 ]), (req, res) => {
   try {
+    const data = safeReadJSON(LINKBIO_FILE, {});
     const body = req.body || {};
-    const raw = fs.readFileSync(LINKBIO_FILE, 'utf8');
-    const data = JSON.parse(raw || '{}');
 
-    // Update text fields
     Object.keys(body).forEach(key => {
-      // socialLinks might come as a JSON string
       if (key === 'socialLinks' && typeof body[key] === 'string') {
-        try {
-          data[key] = JSON.parse(body[key]);
-        } catch (err) {
-          console.error("Error parsing socialLinks:", err);
-        }
+        try { data[key] = JSON.parse(body[key]); } catch (e) { }
       } else if (key === 'whatsapp2Active') {
         data[key] = body[key] === 'true';
       } else {
@@ -531,36 +389,117 @@ app.post('/api/link-bio', authMiddleware, upload.fields([
       }
     });
 
-    // Explicitly handle catalogUrl if provided
-    if (body.catalogUrl !== undefined) data.catalogUrl = body.catalogUrl;
-
-    // Handle uploaded files
     if (req.files) {
       if (req.files.profileImage) data.profileImage = `/store/uploads/${req.files.profileImage[0].filename}`;
       if (req.files.galleryImage) data.galleryImage = `/store/uploads/${req.files.galleryImage[0].filename}`;
     }
 
-    fs.writeFileSync(LINKBIO_FILE, JSON.stringify(data, null, 2), 'utf8');
+    safeWriteJSON(LINKBIO_FILE, data);
     res.json({ ok: true, data });
   } catch (e) {
-    console.error('Error saving link-bio:', e);
-    res.status(500).json({ ok: false, error: e.message });
+    res.status(500).json({ ok: false });
   }
 });
 
+// Community
+app.get('/api/community', (req, res) => {
+  const posts = safeReadJSON(COMMUNITY_FILE, []);
+  res.json(posts.slice().reverse());
+});
 
-// 404 Handler - Return JSON instead of HTML
+app.post('/api/community', upload.single('photo'), (req, res) => {
+  try {
+    const { name, message } = req.body || {};
+    if (!name || !message) return res.status(400).json({ ok: false });
+    const posts = safeReadJSON(COMMUNITY_FILE, []);
+    const newPost = {
+      id: Date.now(),
+      name: name.trim().slice(0, 60),
+      message: message.trim().slice(0, 500),
+      photo: req.file ? `/store/uploads/${req.file.filename}` : null,
+      date: new Date().toISOString()
+    };
+    posts.push(newPost);
+    safeWriteJSON(COMMUNITY_FILE, posts);
+    res.json({ ok: true, post: newPost });
+  } catch (e) {
+    res.status(500).json({ ok: false });
+  }
+});
+
+app.delete('/api/community/:id', authMiddleware, (req, res) => {
+  try {
+    const posts = safeReadJSON(COMMUNITY_FILE, []);
+    const idx = posts.findIndex(p => p.id === Number(req.params.id));
+    if (idx === -1) return res.status(404).json({ ok: false });
+
+    if (posts[idx].photo) {
+      const p = path.join(__dirname, posts[idx].photo.replace(/^\//, ''));
+      if (fs.existsSync(p)) fs.unlinkSync(p);
+    }
+    posts.splice(idx, 1);
+    safeWriteJSON(COMMUNITY_FILE, posts);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ ok: false });
+  }
+});
+
+// --- RUTA DINÁMICA DE META TAGS (Antes de static) ---
+app.get('/store/product.html', (req, res) => {
+  try {
+    const { collection, product: productId } = req.query;
+    const fileContent = fs.readFileSync(path.join(STORE_DIR, 'product.html'), 'utf8');
+    let html = fileContent;
+
+    if (collection && productId) {
+      const productsData = safeReadJSON(PRODUCTS_FILE, {});
+      const coll = productsData[collection];
+      if (coll && coll.products) {
+        const prod = coll.products.find(p => Number(p.id) === Number(productId));
+        if (prod) {
+          const title = `Maleiwa | ${prod.name}`;
+          const desc = prod.description || `Precio: ${prod.price} - Color: ${prod.color}. Descubre más en Maleiwa.`;
+          const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+          const host = req.get('host');
+          const imageUrl = prod.image.startsWith('http') ? prod.image : `${protocol}://${host}${prod.image}`;
+
+          html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
+          html = html.replace('Maleiwa | Producto', title);
+          html = html.replace('<meta property="og:title" content="Maleiwa | Producto" />', `<meta property="og:title" content="${title}" />`);
+          html = html.replace('<meta property="og:description" content="Descubre nuestra colección de moda consciente inspirada en la naturaleza." />', `<meta property="og:description" content="${desc}" />`);
+          html = html.replace('<meta property="og:image" content="/store/logo.webp" />', `<meta property="og:image" content="${imageUrl}" />`);
+        }
+      }
+    }
+    res.send(html);
+  } catch (e) {
+    res.sendFile(path.join(STORE_DIR, 'product.html'));
+  }
+});
+
+// --- SERVIDO DE ARCHIVOS ESTÁTICOS ---
+
+// Servir la carpeta de subidas explícitamente primero
+app.use('/store/uploads', express.static(UPLOADS_DIR));
+
+// Servir el resto del sitio
+app.use(express.static(__dirname));
+
+// Manejador de 404 (para peticiones no encontradas)
 app.use((req, res) => {
-  res.status(404).json({ ok: false, error: 'Route not found' });
+  res.status(404).json({ ok: false, error: 'Ruta no encontrada o archivo inexistente' });
 });
 
-// Global Error Handler
+// Error Global
 app.use((err, req, res, next) => {
-  console.error('Server Error:', err);
-  res.status(500).json({ ok: false, error: 'Internal server error' });
+  console.error('Error del servidor:', err);
+  res.status(500).json({ ok: false, error: 'Error interno del servidor' });
 });
 
+// --- INICIO DEL SERVIDOR ---
 app.listen(PORT, () => {
-  console.log(`--- Maleiwa Server Started ---`);
-  console.log(`URL: http://localhost:${PORT}`);
+  console.log(`--- Maleiwa Server (cPanel Ready) ---`);
+  console.log(`Puerto: ${PORT}`);
+  console.log(`Ruta Base: ${__dirname}`);
 });
