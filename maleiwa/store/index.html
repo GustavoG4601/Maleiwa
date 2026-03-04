@@ -134,7 +134,8 @@
         <main class="flex-1 flex flex-col px-4 @container">
             <div
                 class="relative w-full h-[70vh] max-h-[600px] @[768px]:h-[500px] @[1000px]:h-[450px] overflow-hidden rounded-2xl shadow-2xl group">
-                <img id="heroImage" src="Primer.webp" alt="Primera Colección"
+                <img id="heroImage" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                    alt="Primera Colección"
                     class="absolute inset-0 w-full h-full object-cover object-[center_35%] transition-transform duration-1000 group-hover:scale-110">
                 <div class="absolute inset-0 hero-gradient"></div>
                 <div class="absolute bottom-0 left-0 right-0 p-8 @[768px]:p-12 flex flex-col items-start gap-3">
@@ -169,13 +170,17 @@
             <section class="grid grid-cols-2 gap-4 mb-24">
                 <div class="flex flex-col gap-2">
                     <div class="aspect-square rounded-lg bg-primary/5 overflow-hidden">
-                        <img id="teaser1Image" class="w-full h-full object-cover" src="Texturas.webp" alt="Texturas">
+                        <img id="teaser1Image" class="w-full h-full object-cover"
+                            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                            alt="Texturas">
                     </div>
                     <p id="teaser1Text" class="text-[11px] font-bold uppercase tracking-wider opacity-60">Texturas</p>
                 </div>
                 <div class="flex flex-col gap-2">
                     <div class="aspect-square rounded-lg bg-primary/5 overflow-hidden">
-                        <img id="teaser2Image" class="w-full h-full object-cover" src="arbol.webp" alt="Siluetas">
+                        <img id="teaser2Image" class="w-full h-full object-cover"
+                            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                            alt="Siluetas">
                     </div>
                     <p id="teaser2Text" class="text-[11px] font-bold uppercase tracking-wider opacity-60">Siluetas</p>
                 </div>
@@ -543,9 +548,10 @@
             if (data.actionButtonText) document.getElementById('actionButtonText').textContent = data.actionButtonText;
             if (data.teaser1Text) document.getElementById('teaser1Text').textContent = data.teaser1Text;
             if (data.teaser2Text) document.getElementById('teaser2Text').textContent = data.teaser2Text;
-            if (data.heroImage) document.getElementById('heroImage').src = data.heroImage;
-            if (data.teaser1Image) document.getElementById('teaser1Image').src = data.teaser1Image;
-            if (data.teaser2Image) document.getElementById('teaser2Image').src = data.teaser2Image;
+            const t = Date.now();
+            if (data.heroImage) document.getElementById('heroImage').src = data.heroImage + "?t=" + t;
+            if (data.teaser1Image) document.getElementById('teaser1Image').src = data.teaser1Image + "?t=" + t;
+            if (data.teaser2Image) document.getElementById('teaser2Image').src = data.teaser2Image + "?t=" + t;
         } catch (e) {
             console.error('Error loading home config', e);
         }
