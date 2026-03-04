@@ -132,6 +132,22 @@ app.get('/api/check-auth', (req, res) => {
     res.status(401).json({ ok: false });
 });
 
+app.post('/api/change-password', auth, (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+    const admin = getAdmin();
+    if (oldPassword !== admin.password) {
+        return res.status(400).json({ ok: false, error: 'Contraseña actual incorrecta' });
+    }
+    admin.password = newPassword;
+    admin.token = 'sess_' + Date.now().toString(36); // Cambiar token para forzar re-login
+    if (safeWrite(FILES.admin, admin)) {
+        res.cookie('admin_token', admin.token, { httpOnly: true, path: '/', maxAge: 60 * 60 * 1000 });
+        res.json({ ok: true });
+    } else {
+        res.status(500).json({ ok: false, error: 'Error al escribir en servidor' });
+    }
+});
+
 // Products
 app.get('/api/products', (req, res) => res.json(safeRead(FILES.products)));
 
@@ -184,6 +200,26 @@ app.delete('/api/products/:coll/:id', auth, (req, res) => {
     else res.status(500).json({ ok: false });
 });
 
+// Collections
+app.post('/api/collections', auth, (req, res) => {
+    const { name, title, desc } = req.body || {};
+    if (!name) return res.status(400).json({ ok: false, error: 'ID requerido' });
+    const data = safeRead(FILES.products);
+    if (data[name]) return res.json({ ok: false, error: 'La colección ya existe' });
+    data[name] = { title: title || name, desc: desc || '', products: [] };
+    if (safeWrite(FILES.products, data)) res.json({ ok: true });
+    else res.status(500).json({ ok: false });
+});
+
+app.delete('/api/collections/:name', auth, (req, res) => {
+    const { name } = req.params;
+    const data = safeRead(FILES.products);
+    if (!data[name]) return res.status(404).json({ ok: false });
+    delete data[name];
+    if (safeWrite(FILES.products, data)) res.json({ ok: true });
+    else res.status(500).json({ ok: false });
+});
+
 // Settings & Other
 app.get('/api/settings', (req, res) => res.json(safeRead(FILES.settings)));
 app.post('/api/settings', auth, upload.fields([{ name: 'contactHeroImage', maxCount: 1 }]), (req, res) => {
@@ -210,7 +246,19 @@ app.post('/api/home', auth, upload.fields([{ name: 'heroImage' }, { name: 'tease
 app.get('/api/link-bio', (req, res) => res.json(safeRead(FILES.linkbio)));
 app.post('/api/link-bio', auth, upload.fields([{ name: 'profileImage' }, { name: 'galleryImage' }]), (req, res) => {
     const data = safeRead(FILES.linkbio);
-    Object.assign(data, req.body);
+    const body = req.body || {};
+
+    // Actualizar campos de texto
+    Object.keys(body).forEach(key => {
+        if (key === 'socialLinks' && typeof body[key] === 'string') {
+            try { data[key] = JSON.parse(body[key]); } catch (e) { }
+        } else if (key === 'whatsapp2Active') {
+            data[key] = body[key] === 'true';
+        } else {
+            data[key] = body[key];
+        }
+    });
+
     if (req.files) {
         if (req.files.profileImage) data.profileImage = `/store/uploads/${req.files.profileImage[0].filename}`;
         if (req.files.galleryImage) data.galleryImage = `/store/uploads/${req.files.galleryImage[0].filename}`;
