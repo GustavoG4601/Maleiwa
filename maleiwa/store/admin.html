@@ -192,6 +192,7 @@
               <option value="home">Editar Inicio</option>
               <option value="linkbio">Link in Bio</option>
               <option value="settings">Configuración General</option>
+              <option value="community">Comunidad</option>
               <option value="security">Seguridad</option>
             </select>
             <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-primary/60">
@@ -223,10 +224,27 @@
           <button id="tabSettings"
             class="px-2 py-3 border-b-2 border-transparent text-slate-600 hover:text-primary transition-colors font-bold cursor-pointer shrink-0"
             onclick="showTab('settings')">Ajustes Generales</button>
+          <button id="tabCommunity"
+            class="px-2 py-3 border-b-2 border-transparent text-slate-600 hover:text-primary transition-colors font-bold cursor-pointer shrink-0"
+            onclick="showTab('community')">Comunidad</button>
+        </div>
+
+        <!-- Tab: Comunidad -->
+        <div id="tabCommunityContent" class="hidden space-y-6">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold">Voces de la Comunidad</h2>
+            <button onclick="loadCommunity()"
+              class="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl font-bold hover:bg-primary/20 transition-colors text-sm">
+              <span class="material-symbols-outlined text-sm">refresh</span> Actualizar
+            </button>
+          </div>
+          <div id="communityList" class="space-y-4">
+            <p class="text-slate-400 text-sm">Cargando comentarios...</p>
+          </div>
         </div>
 
         <!-- Tab: Agregar/Editar Producto -->
-        <div id="tabAddContent" class="transition-all duration-300 rounded-2xl p-4">
+        <div id="tabAddContent" class="hidden transition-all duration-300 rounded-2xl p-4">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-xl font-semibold" id="formTitle">Agregar Producto</h2>
             <div id="editBadge"
@@ -738,6 +756,67 @@
       return res.json();
     }
 
+    /**
+     * Comprime una imagen usando el API Canvas del navegador.
+     * @param {File} file - El archivo de imagen original.
+     * @param {number} maxWidth - Ancho máximo en pixeles (por defecto 1200).
+     * @param {number} quality - Calidad JPEG de 0 a 1 (por defecto 0.80).
+     * @returns {Promise<File>} El archivo comprimido.
+     */
+    function compressImage(file, maxWidth = 1200, quality = 0.80) {
+      return new Promise((resolve) => {
+        // Si no es imagen, la devolvemos tal cual
+        if (!file.type.startsWith('image/')) return resolve(file);
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+          const img = new Image();
+          img.src = e.target.result;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            // Reducir si supera el ancho máximo
+            if (width > maxWidth) {
+              height = Math.round(height * (maxWidth / width));
+              width = maxWidth;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob((blob) => {
+              const compressedFile = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+              });
+              resolve(compressedFile);
+            }, 'image/jpeg', quality);
+          };
+        };
+      });
+    }
+
+    /**
+     * Comprime múltiples imágenes y muestra el progreso en un mensaje.
+     */
+    async function compressFiles(files, statusElementId) {
+      const statusEl = statusElementId ? document.getElementById(statusElementId) : null;
+      if (statusEl) statusEl.textContent = `Comprimiendo ${files.length} imagen(es)...`;
+      const compressed = [];
+      for (let i = 0; i < files.length; i++) {
+        const c = await compressImage(files[i]);
+        compressed.push(c);
+        if (statusEl) statusEl.textContent = `Comprimiendo... (${i + 1}/${files.length})`;
+      }
+      if (statusEl) statusEl.textContent = '';
+      return compressed;
+    }
+
     function showToast(message, type = 'success') {
       const container = document.getElementById('toast-container');
       if (!container) return;
@@ -771,6 +850,7 @@
       document.getElementById('tabLinkBioContent').classList.toggle('hidden', tabName !== 'linkbio');
       document.getElementById('tabSettingsContent').classList.toggle('hidden', tabName !== 'settings');
       document.getElementById('tabSecurityContent').classList.toggle('hidden', tabName !== 'security');
+      document.getElementById('tabCommunityContent').classList.toggle('hidden', tabName !== 'community');
 
       document.getElementById('tabAdd').classList.toggle('border-primary', tabName === 'add');
       document.getElementById('tabAdd').classList.toggle('border-transparent', tabName !== 'add');
@@ -800,12 +880,17 @@
       document.getElementById('tabSecurity').classList.toggle('border-transparent', tabName !== 'security');
       document.getElementById('tabSecurity').classList.toggle('text-slate-600', tabName !== 'security');
 
+      document.getElementById('tabCommunity').classList.toggle('border-primary', tabName === 'community');
+      document.getElementById('tabCommunity').classList.toggle('border-transparent', tabName !== 'community');
+      document.getElementById('tabCommunity').classList.toggle('text-slate-600', tabName !== 'community');
+
       if (tabName === 'list') loadProducts();
       if (tabName === 'colls') loadCollections();
       if (tabName === 'add') populateCollectionDropdown();
       if (tabName === 'home') loadHomeConfig();
       if (tabName === 'linkbio') loadLinkBioConfig();
       if (tabName === 'settings') loadSettings();
+      if (tabName === 'community') loadCommunity();
       if (tabName === 'security') {
         document.getElementById('passwordForm').reset();
       }
@@ -874,9 +959,9 @@
       const teaser1File = document.getElementById('teaser1ImageInput').files[0];
       const teaser2File = document.getElementById('teaser2ImageInput').files[0];
 
-      if (heroFile) fd.append('heroImage', heroFile);
-      if (teaser1File) fd.append('teaser1Image', teaser1File);
-      if (teaser2File) fd.append('teaser2Image', teaser2File);
+      if (heroFile) fd.append('heroImage', await compressImage(heroFile));
+      if (teaser1File) fd.append('teaser1Image', await compressImage(teaser1File));
+      if (teaser2File) fd.append('teaser2Image', await compressImage(teaser2File));
 
       try {
         const res = await fetch('/api/home', { method: 'POST', body: fd, credentials: 'include' });
@@ -1107,8 +1192,10 @@
 
       const files = document.getElementById('images').files;
       if (files.length > 0) {
-        for (let i = 0; i < files.length; i++) {
-          fd.append('images', files[i]);
+        // Comprimir imágenes antes de subir
+        const compressed = await compressFiles(Array.from(files), 'result');
+        for (const cf of compressed) {
+          fd.append('images', cf);
         }
       }
 
@@ -1225,7 +1312,7 @@
       fd.append('contactCareersUrl', document.getElementById('setContactCareers').value);
 
       const heroFile = document.getElementById('setContactHeroImage').files[0];
-      if (heroFile) fd.append('contactHeroImage', heroFile);
+      if (heroFile) fd.append('contactHeroImage', await compressImage(heroFile));
 
       try {
         const res = await fetch('/api/settings', { method: 'POST', body: fd, credentials: 'include' });
@@ -1379,8 +1466,8 @@
       const profileFile = document.getElementById('lbProfileImageInput').files[0];
       const galleryFile = document.getElementById('lbGalleryImageInput').files[0];
 
-      if (profileFile) fd.append('profileImage', profileFile);
-      if (galleryFile) fd.append('galleryImage', galleryFile);
+      if (profileFile) fd.append('profileImage', await compressImage(profileFile));
+      if (galleryFile) fd.append('galleryImage', await compressImage(galleryFile));
 
       try {
         const res = await fetch('/api/link-bio', { method: 'POST', body: fd, credentials: 'include' });
@@ -1397,6 +1484,67 @@
     });
 
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeFavModal(); });
+
+    // --- COMUNIDAD ---
+    async function loadCommunity() {
+      const container = document.getElementById('communityList');
+      container.innerHTML = '<p class="text-slate-400 text-sm">Cargando...</p>';
+      try {
+        const res = await fetch('/api/community');
+        const posts = await res.json();
+        if (!Array.isArray(posts) || posts.length === 0) {
+          container.innerHTML = '<p class="text-slate-500 text-center py-8">No hay comentarios todavía.</p>';
+          return;
+        }
+        container.innerHTML = posts.map(p => `
+          <div class="flex gap-4 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-primary/10 shadow-sm hover:border-primary/30 transition-all">
+            ${p.photo
+            ? `<img src="${p.photo}" class="w-16 h-16 rounded-xl object-cover shrink-0 bg-slate-200" onerror="this.style.display='none'">`
+            : `<div class="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-primary">person</span></div>`
+          }
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <p class="font-bold text-slate-900 dark:text-slate-100">${p.name}</p>
+                  <p class="text-[11px] text-slate-400 font-semibold">${new Date(p.date).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                </div>
+                <button onclick="deleteCommunityPost(${p.id})" class="flex-shrink-0 flex items-center gap-1 px-3 py-2 border border-rose-200 text-rose-500 rounded-xl hover:bg-rose-50 transition-colors text-xs font-bold">
+                  <span class="material-symbols-outlined text-sm">delete</span> Eliminar
+                </button>
+              </div>
+              <p class="text-slate-600 dark:text-slate-300 text-sm mt-2 leading-relaxed break-words">${p.message}</p>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        container.innerHTML = '<p class="text-red-500">Error al cargar comentarios.</p>';
+      }
+    }
+
+    async function deleteCommunityPost(id) {
+      if (!confirm('¿Eliminar este comentario permanentemente?')) return;
+      try {
+        const res = await fetch(`/api/community/${id}`, { method: 'DELETE', credentials: 'include' });
+        // Si la respuesta no es JSON (ej. HTML de error de cPanel), capturamos el texto
+        const text = await res.text();
+        let data;
+        try { data = JSON.parse(text); } catch (_) {
+          showToast(`Error del servidor (${res.status}): actualiza app.js en cPanel`, 'info');
+          return;
+        }
+        if (data.ok) {
+          showToast('Comentario eliminado');
+          loadCommunity();
+        } else if (res.status === 401) {
+          showToast('Sesión expirada, vuelve a iniciar sesión', 'info');
+        } else {
+          showToast('Error al eliminar: ' + (data.error || res.status), 'info');
+        }
+      } catch (e) {
+        showToast('Sin conexión con el servidor', 'info');
+      }
+    }
+
   </script>
   <!-- Toast Container -->
   <div id="toast-container" class="toast-container"></div>

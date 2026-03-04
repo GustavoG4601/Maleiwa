@@ -4,6 +4,7 @@ const path = require('path');
 const multer = require('multer');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const compression = require('compression');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -56,12 +57,14 @@ const safeWrite = (file, data) => {
 };
 
 // Middlewares
+app.use(compression()); // Gzip: reduce el tamaño de respuestas hasta un 70%
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// Cabeceras Anti-Cache para cPanel
-app.use((req, res, next) => {
+// Caché inteligente: solo las rutas /api/ van sin caché
+// Los archivos estáticos (imágenes, JS, CSS) se cachean por 7 días en el navegador
+app.use('/api', (req, res, next) => {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private, max-age=0');
     res.set('Pragma', 'no-cache');
     res.set('Expires', '0');
@@ -305,9 +308,18 @@ app.get('/store/product.html', (req, res) => {
     } catch (e) { res.sendFile(path.join(STORE_DIR, 'product.html')); }
 });
 
-// Estáticos
-app.use('/store/uploads', express.static(UPLOADS_DIR));
-app.use(express.static(__dirname));
+// Archivos subidos (imágenes): caché de 7 días en el navegador
+app.use('/store/uploads', express.static(UPLOADS_DIR, {
+    maxAge: '7d',
+    immutable: true
+}));
+
+// Archivos estáticos del sitio: caché de 1 día
+app.use(express.static(__dirname, {
+    maxAge: '1d',
+    etag: true,
+    lastModified: true
+}));
 
 // Start
 app.listen(PORT, () => {
