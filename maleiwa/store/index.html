@@ -428,7 +428,7 @@
     window.storeSettings = { whatsapp: '573046601648' };
     async function loadSettings() {
         try {
-            const res = await fetch('/api/settings');
+            const res = await fetch('../api/settings');
             const data = await res.json();
             window.storeSettings = data;
             if (data.aboutUsTitle) document.getElementById('aboutTitle').textContent = data.aboutUsTitle;
@@ -541,7 +541,7 @@
     // Load home config
     async function initHome() {
         try {
-            const res = await fetch('/api/home');
+            const res = await fetch('../api/home');
             const data = await res.json();
             if (data.heroSubtitle) document.getElementById('heroSubtitle').textContent = data.heroSubtitle;
             if (data.heroTitleMain) document.getElementById('heroTitleMain').textContent = data.heroTitleMain;

@@ -550,7 +550,7 @@
         // ── Load posts ─────────────────────────────────────────────────────────
         async function loadPosts() {
             try {
-                const res = await fetch('/api/community');
+                const res = await fetch('../api/community');
                 const posts = await res.json();
                 renderPosts(posts);
             } catch (e) {
@@ -568,7 +568,7 @@
 
             try {
                 const formData = new FormData(this);
-                const res = await fetch('/api/community', { method: 'POST', body: formData });
+                const res = await fetch('../api/community', { method: 'POST', body: formData });
                 const data = await res.json();
 
                 if (!res.ok || !data.ok) throw new Error(data.error || 'Error');

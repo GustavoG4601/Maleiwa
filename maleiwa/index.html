@@ -37,13 +37,22 @@
     body {
       min-height: max(884px, 100dvh);
     }
+
+    .fade-in {
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    .fade-in.loaded {
+      opacity: 1;
+    }
   </style>
 </head>
 
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
   <!-- Main Container with subtle texture effect using a gradient overlay -->
-  <div
-    class="relative min-h-screen w-full flex flex-col items-center bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(#3d3228_1px,transparent_1px)]">
+  <div id="main-container"
+    class="relative min-h-screen w-full flex flex-col items-center bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(#3d3228_1px,transparent_1px)] fade-in">
     <!-- Top Bar -->
     <div class="flex items-center w-full max-w-[480px] p-4 justify-between z-10">
       <button
@@ -65,18 +74,15 @@
     <div class="flex flex-col items-center w-full max-w-[480px] px-6 pt-8 pb-4">
       <div class="relative p-1 rounded-full border-2 border-primary/30 mb-6">
         <div id="profileImage"
-          class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-32 w-32 border-4 border-background-light dark:border-background-dark"
-          data-alt="Minimalist clothing on a wooden hanger with natural lighting"
-          style='background-image: url("imagen1.webp");'>
+          class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-32 w-32 border-4 border-background-light dark:border-background-dark bg-slate-200">
         </div>
       </div>
       <div class="flex flex-col items-center text-center space-y-2">
-        <h2 id="profileName" class="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight">Maleiwa</h2>
-        <a id="profileUsername" class="text-primary font-medium text-sm tracking-wide hover:underline"
-          href="https://instagram.com/soy.maleiwa" target="_blank" rel="noopener noreferrer">@soy.maleiwa</a>
+        <h2 id="profileName" class="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight">&nbsp;</h2>
+        <a id="profileUsername" class="text-primary font-medium text-sm tracking-wide hover:underline" href="#"
+          target="_blank" rel="noopener noreferrer">&nbsp;</a>
         <p id="profileBio" class="text-slate-600 dark:text-slate-400 text-base leading-relaxed max-w-[300px] mt-2">
-          Moda consciente y minimalista inspirada en la naturaleza, conectada con raices y texturas orgánicas.
-        </p>
+          &nbsp;</p>
       </div>
     </div>
     <!-- Links Section -->
@@ -112,10 +118,10 @@
       <div class="group relative overflow-hidden rounded-xl aspect-[3/4]" style="width: 180px; height: 240px;">
         <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
         <div id="galleryImage"
-          class="h-full w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
-          style='background-image: url("esencia\ caribe.webp");'></div>
+          class="h-full w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110 bg-slate-200">
+        </div>
         <p id="galleryLabel"
-          class="absolute bottom-3 left-3 z-20 text-white text-sm font-semibold uppercase tracking-wider"> Esencia </p>
+          class="absolute bottom-3 left-3 z-20 text-white text-sm font-semibold uppercase tracking-wider">&nbsp;</p>
       </div>
     </div>
     <!-- Footer -->
@@ -158,7 +164,7 @@
   <script>
     async function initLinkBio() {
       try {
-        const res = await fetch('/api/link-bio');
+        const res = await fetch('api/link-bio');
         const data = await res.json();
 
         if (data.profileName) document.getElementById('profileName').textContent = data.profileName;
@@ -168,8 +174,9 @@
           u.href = data.profileLink || '#';
         }
         if (data.profileBio) document.getElementById('profileBio').textContent = data.profileBio;
+        const t = Date.now();
         if (data.profileImage) {
-          document.getElementById('profileImage').style.backgroundImage = `url("${data.profileImage}")`;
+          document.getElementById('profileImage').style.backgroundImage = `url("${data.profileImage}?t=${t}")`;
         }
 
         if (data.catalogUrl && data.catalogUrl !== '#') {
@@ -247,11 +254,15 @@
         }
 
         if (data.galleryTitle) document.getElementById('galleryTitle').textContent = data.galleryTitle;
-        if (data.galleryImage) document.getElementById('galleryImage').style.backgroundImage = `url("${data.galleryImage}")`;
+        if (data.galleryImage) document.getElementById('galleryImage').style.backgroundImage = `url("${data.galleryImage}?t=${t}")`;
         if (data.galleryLabel) document.getElementById('galleryLabel').textContent = data.galleryLabel;
+
+        // Revelar el contenedor suavemente una vez cargado
+        document.getElementById('main-container').classList.add('loaded');
 
       } catch (e) {
         console.error('Error loading link-bio data:', e);
+        document.getElementById('main-container').classList.add('loaded');
       }
     }
     initLinkBio();

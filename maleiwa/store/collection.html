@@ -237,7 +237,7 @@
   <script>
     async function loadSettings() {
       try {
-        const res = await fetch('/api/settings');
+        const res = await fetch('../api/settings');
         const data = await res.json();
         window.storeSettings = data;
         if (data.aboutUsTitle) document.getElementById('aboutTitle').textContent = data.aboutUsTitle;
@@ -495,7 +495,7 @@
     document.getElementById('cart-count').textContent = localStorage.getItem('cart-count') || '0';
 
     // Fetch server products and update collection state
-    fetch('/api/products').then(r => r.json()).then(data => {
+    fetch('../api/products').then(r => r.json()).then(data => {
       if (data && Object.keys(data).length) {
         collections = data;
         // refresh view if on a collection page or favorites

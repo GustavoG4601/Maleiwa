@@ -907,7 +907,7 @@
       }
 
       try {
-        const res = await fetch('/api/change-password', {
+        const res = await fetch('../api/change-password', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ oldPassword, newPassword }),
@@ -928,7 +928,7 @@
 
     async function loadHomeConfig() {
       try {
-        const res = await fetch('/api/home');
+        const res = await fetch('../api/home');
         const data = await res.json();
         document.getElementById('heroSubtitle').value = data.heroSubtitle || '';
         document.getElementById('heroTitleMain').value = data.heroTitleMain || '';
@@ -964,7 +964,7 @@
       if (teaser2File) fd.append('teaser2Image', await compressImage(teaser2File));
 
       try {
-        const res = await fetch('/api/home', { method: 'POST', body: fd, credentials: 'include' });
+        const res = await fetch('../api/home', { method: 'POST', body: fd, credentials: 'include' });
         const r = await res.json();
         if (r.ok) {
           showToast('Configuración de inicio guardada');
@@ -980,7 +980,7 @@
 
     async function loadCollections() {
       try {
-        const res = await fetch('/api/products');
+        const res = await fetch('../api/products');
         const data = await res.json();
         displayCollections(data);
       } catch (e) {
@@ -1035,7 +1035,7 @@
     async function deleteCollection(id) {
       if (!confirm(`¿Estás seguro de que quieres eliminar la colección "${id}" y TODOS sus productos?`)) return;
       try {
-        const res = await fetch(`/api/collections/${id}`, { method: 'DELETE', credentials: 'include' });
+        const res = await fetch(`../api/collections/${id}`, { method: 'DELETE', credentials: 'include' });
         const data = await res.json();
         if (data.ok) {
           showToast(`La colección "${id}" ha sido eliminada`);
@@ -1052,7 +1052,7 @@
     async function populateCollectionDropdown() {
       const sel = document.getElementById('collection');
       try {
-        const res = await fetch('/api/products');
+        const res = await fetch('../api/products');
         const data = await res.json();
         sel.innerHTML = Object.keys(data).map(id => `<option value="${id}">${data[id].title}</option>`).join('');
       } catch (e) {
@@ -1065,7 +1065,7 @@
 
     async function loadProducts() {
       try {
-        const res = await fetch('/api/products');
+        const res = await fetch('../api/products');
         const data = await res.json();
         displayProducts(data);
       } catch (e) {
@@ -1118,7 +1118,7 @@
       if (!confirm('¿Estás seguro de que quieres eliminar este producto?')) return;
 
       try {
-        const res = await fetch(`/api/products/${collection}/${productId}`, {
+        const res = await fetch(`../api/products/${collection}/${productId}`, {
           method: 'DELETE',
           credentials: 'include'
         });
@@ -1138,7 +1138,7 @@
     document.getElementById('loginBtn').addEventListener('click', async () => {
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
-      const r = await postJSON('/api/login', { username, password });
+      const r = await postJSON('../api/login', { username, password });
       if (r.ok) {
         showPanel();
         showToast('Acceso autorizado. Bienvenido.');
@@ -1157,7 +1157,7 @@
     async function checkAuth() {
       try {
         // Cache-buster (?t=) para obligar a cPanel a ignorar el caché
-        const res = await fetch('/api/check-auth?t=' + Date.now(), { credentials: 'include' });
+        const res = await fetch('../api/check-auth?t=' + Date.now(), { credentials: 'include' });
         if (res.ok) {
           showPanel();
         } else {
@@ -1199,11 +1199,11 @@
         }
       }
 
-      let url = '/api/products';
+      let url = '../api/products';
       let method = 'POST';
 
       if (editId) {
-        url = `/api/products/${editColl}/${editId}`;
+        url = `../api/products/${editColl}/${editId}`;
         method = 'PUT';
       }
 
@@ -1266,7 +1266,7 @@
       if (!confirm('¿Cerrar sesión en este y otros dispositivos?')) return;
       try {
         // Cache-buster para el logout
-        await fetch('/api/logout?t=' + Date.now(), { method: 'POST', credentials: 'include' });
+        await fetch('../api/logout?t=' + Date.now(), { method: 'POST', credentials: 'include' });
       } catch (e) { }
       // Redirigir al inicio para limpiar el estado de la app completamente
       location.href = '/store/index.html';
@@ -1274,7 +1274,7 @@
 
     async function loadSettings() {
       try {
-        const res = await fetch('/api/settings');
+        const res = await fetch('../api/settings');
         const data = await res.json();
         document.getElementById('setWhatsapp1').value = data.whatsapp1 || '';
         document.getElementById('setWhatsapp2').value = data.whatsapp2 || '';
@@ -1315,7 +1315,7 @@
       if (heroFile) fd.append('contactHeroImage', await compressImage(heroFile));
 
       try {
-        const res = await fetch('/api/settings', { method: 'POST', body: fd, credentials: 'include' });
+        const res = await fetch('../api/settings', { method: 'POST', body: fd, credentials: 'include' });
         const r = await res.json();
         if (r.ok) {
           showToast('Configuración general guardada');
@@ -1388,7 +1388,7 @@
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeFavModal(); });
     async function loadLinkBioConfig() {
       try {
-        const res = await fetch('/api/link-bio', { credentials: 'include' });
+        const res = await fetch('../api/link-bio', { credentials: 'include' });
         const data = await res.json();
         document.getElementById('lbProfileName').value = data.profileName || '';
         document.getElementById('lbProfileUsername').value = data.profileUsername || '';
@@ -1470,7 +1470,7 @@
       if (galleryFile) fd.append('galleryImage', await compressImage(galleryFile));
 
       try {
-        const res = await fetch('/api/link-bio', { method: 'POST', body: fd, credentials: 'include' });
+        const res = await fetch('../api/link-bio', { method: 'POST', body: fd, credentials: 'include' });
         const r = await res.json();
         if (r.ok) {
           showToast('Link in Bio guardado con éxito');
@@ -1490,7 +1490,7 @@
       const container = document.getElementById('communityList');
       container.innerHTML = '<p class="text-slate-400 text-sm">Cargando...</p>';
       try {
-        const res = await fetch('/api/community');
+        const res = await fetch('../api/community');
         const posts = await res.json();
         if (!Array.isArray(posts) || posts.length === 0) {
           container.innerHTML = '<p class="text-slate-500 text-center py-8">No hay comentarios todavía.</p>';

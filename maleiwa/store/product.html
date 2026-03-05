@@ -468,7 +468,7 @@
 
     // try to load from server
     function loadAndDisplay() {
-      fetch('/api/products').then(r => r.json()).then(data => {
+      fetch('../api/products').then(r => r.json()).then(data => {
         if (data && Object.keys(data).length) {
           // Use server data (has { title, desc, products: [...] } format)
           collectionProducts = data;

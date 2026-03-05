@@ -7,7 +7,14 @@ const cors = require('cors');
 const compression = require('compression');
 
 const app = express();
+// Passenger pasa el puerto como variable de entorno. Puede ser un número o una ruta de socket Unix.
 const PORT = process.env.PORT || 3000;
+
+// Log de inicio para depuración en cPanel
+console.log('--- Iniciando Maleiwa ---');
+console.log('__dirname:', __dirname);
+console.log('CWD:', process.cwd());
+console.log('NODE_ENV:', process.env.NODE_ENV);
 
 // Configuración de rutas (Rutas absolutas obligatorias en cPanel)
 const STORE_DIR = path.join(__dirname, 'store');
@@ -62,6 +69,12 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
+// Middleware para ver qué rutas están llegando realmente
+app.use((req, res, next) => {
+    console.log(`[Request] ${req.method} ${req.url}`);
+    next();
+});
+
 // Caché inteligente: solo las rutas /api/ van sin caché
 // Los archivos estáticos (imágenes, JS, CSS) se cachean por 7 días en el navegador
 app.use('/api', (req, res, next) => {
@@ -100,7 +113,9 @@ const upload = multer({ storage });
 
 // --- API ---
 
-app.post('/api/login', (req, res) => {
+// Usamos expresiones regulares o asteriscos para que las rutas funcionen 
+// incluso si la app está en una subcarpeta (ej: /maleiwa/api/login)
+app.post(['/api/login', '*/api/login'], (req, res) => {
     const { username, password } = req.body || {};
     const admin = getAdmin();
     if (username === admin.username && password === admin.password) {
@@ -123,19 +138,19 @@ app.post('/api/login', (req, res) => {
     res.status(401).json({ ok: false });
 });
 
-app.post('/api/logout', (req, res) => {
+app.post(['/api/logout', '*/api/logout'], (req, res) => {
     res.clearCookie('admin_token', { path: '/' });
     res.json({ ok: true });
 });
 
-app.get('/api/check-auth', (req, res) => {
+app.get(['/api/check-auth', '*/api/check-auth'], (req, res) => {
     const token = req.cookies?.admin_token;
     const admin = getAdmin();
     if (token && token === admin.token) return res.json({ ok: true });
     res.status(401).json({ ok: false });
 });
 
-app.post('/api/change-password', auth, (req, res) => {
+app.post(['/api/change-password', '*/api/change-password'], auth, (req, res) => {
     const { oldPassword, newPassword } = req.body;
     const admin = getAdmin();
     if (oldPassword !== admin.password) {
@@ -152,9 +167,9 @@ app.post('/api/change-password', auth, (req, res) => {
 });
 
 // Products
-app.get('/api/products', (req, res) => res.json(safeRead(FILES.products)));
+app.get(['/api/products', '*/api/products'], (req, res) => res.json(safeRead(FILES.products)));
 
-app.post('/api/products', auth, upload.array('images', 5), (req, res) => {
+app.post(['/api/products', '*/api/products'], auth, upload.array('images', 5), (req, res) => {
     const body = req.body || {};
     const coll = body.collection || 'esencia';
     const data = safeRead(FILES.products);
@@ -179,7 +194,7 @@ app.post('/api/products', auth, upload.array('images', 5), (req, res) => {
     }
 });
 
-app.put('/api/products/:coll/:id', auth, upload.array('images', 5), (req, res) => {
+app.put(['/api/products/:coll/:id', '*/api/products/:coll/:id'], auth, upload.array('images', 5), (req, res) => {
     const { coll, id } = req.params;
     const data = safeRead(FILES.products);
     if (!data[coll]) return res.status(404).json({ ok: false });
@@ -194,7 +209,7 @@ app.put('/api/products/:coll/:id', auth, upload.array('images', 5), (req, res) =
     else res.status(500).json({ ok: false });
 });
 
-app.delete('/api/products/:coll/:id', auth, (req, res) => {
+app.delete(['/api/products/:coll/:id', '*/api/products/:coll/:id'], auth, (req, res) => {
     const { coll, id } = req.params;
     const data = safeRead(FILES.products);
     if (!data[coll]) return res.status(404).json({ ok: false });
@@ -204,7 +219,7 @@ app.delete('/api/products/:coll/:id', auth, (req, res) => {
 });
 
 // Collections
-app.post('/api/collections', auth, (req, res) => {
+app.post(['/api/collections', '*/api/collections'], auth, (req, res) => {
     const { name, title, desc } = req.body || {};
     if (!name) return res.status(400).json({ ok: false, error: 'ID requerido' });
     const data = safeRead(FILES.products);
@@ -214,7 +229,7 @@ app.post('/api/collections', auth, (req, res) => {
     else res.status(500).json({ ok: false });
 });
 
-app.delete('/api/collections/:name', auth, (req, res) => {
+app.delete(['/api/collections/:name', '*/api/collections/:name'], auth, (req, res) => {
     const { name } = req.params;
     const data = safeRead(FILES.products);
     if (!data[name]) return res.status(404).json({ ok: false });
@@ -224,8 +239,8 @@ app.delete('/api/collections/:name', auth, (req, res) => {
 });
 
 // Settings & Other
-app.get('/api/settings', (req, res) => res.json(safeRead(FILES.settings)));
-app.post('/api/settings', auth, upload.fields([{ name: 'contactHeroImage', maxCount: 1 }]), (req, res) => {
+app.get(['/api/settings', '*/api/settings'], (req, res) => res.json(safeRead(FILES.settings)));
+app.post(['/api/settings', '*/api/settings'], auth, upload.fields([{ name: 'contactHeroImage', maxCount: 1 }]), (req, res) => {
     const data = safeRead(FILES.settings);
     Object.assign(data, req.body);
     if (req.files?.contactHeroImage) data.contactHeroImage = `/store/uploads/${req.files.contactHeroImage[0].filename}`;
@@ -233,8 +248,8 @@ app.post('/api/settings', auth, upload.fields([{ name: 'contactHeroImage', maxCo
     else res.status(500).json({ ok: false });
 });
 
-app.get('/api/home', (req, res) => res.json(safeRead(FILES.home)));
-app.post('/api/home', auth, upload.fields([{ name: 'heroImage' }, { name: 'teaser1Image' }, { name: 'teaser2Image' }]), (req, res) => {
+app.get(['/api/home', '*/api/home'], (req, res) => res.json(safeRead(FILES.home)));
+app.post(['/api/home', '*/api/home'], auth, upload.fields([{ name: 'heroImage' }, { name: 'teaser1Image' }, { name: 'teaser2Image' }]), (req, res) => {
     const data = safeRead(FILES.home);
     Object.assign(data, req.body);
     if (req.files) {
@@ -246,8 +261,8 @@ app.post('/api/home', auth, upload.fields([{ name: 'heroImage' }, { name: 'tease
     else res.status(500).json({ ok: false });
 });
 
-app.get('/api/link-bio', (req, res) => res.json(safeRead(FILES.linkbio)));
-app.post('/api/link-bio', auth, upload.fields([{ name: 'profileImage' }, { name: 'galleryImage' }]), (req, res) => {
+app.get(['/api/link-bio', '*/api/link-bio'], (req, res) => res.json(safeRead(FILES.linkbio)));
+app.post(['/api/link-bio', '*/api/link-bio'], auth, upload.fields([{ name: 'profileImage' }, { name: 'galleryImage' }]), (req, res) => {
     const data = safeRead(FILES.linkbio);
     const body = req.body || {};
 
@@ -270,8 +285,8 @@ app.post('/api/link-bio', auth, upload.fields([{ name: 'profileImage' }, { name:
     else res.status(500).json({ ok: false });
 });
 
-app.get('/api/community', (req, res) => res.json(safeRead(FILES.community, []).slice().reverse()));
-app.post('/api/community', upload.single('photo'), (req, res) => {
+app.get(['/api/community', '*/api/community'], (req, res) => res.json(safeRead(FILES.community, []).slice().reverse()));
+app.post(['/api/community', '*/api/community'], upload.single('photo'), (req, res) => {
     const { name, message } = req.body;
     if (!name || !message) return res.status(400).json({ ok: false });
     const posts = safeRead(FILES.community, []);
@@ -281,7 +296,7 @@ app.post('/api/community', upload.single('photo'), (req, res) => {
     else res.status(500).json({ ok: false });
 });
 
-app.delete('/api/community/:id', auth, (req, res) => {
+app.delete(['/api/community/:id', '*/api/community/:id'], auth, (req, res) => {
     const posts = safeRead(FILES.community, []);
     const newPosts = posts.filter(p => Number(p.id) !== Number(req.params.id));
     if (safeWrite(FILES.community, newPosts)) res.json({ ok: true });
@@ -321,7 +336,21 @@ app.use(express.static(__dirname, {
     lastModified: true
 }));
 
-// Start
-app.listen(PORT, () => {
-    console.log(`--- Server Maleiwa iniciado en puerto ${PORT} ---`);
-});
+// Start - compatible con Phusion Passenger (cPanel) y ejecución directa
+// Passenger puede pasar un socket Unix como PORT (ej: /tmp/passenger.xxx.sock)
+const startServer = () => {
+    app.listen(PORT, () => {
+        const addr = typeof PORT === 'string' && PORT.startsWith('/')
+            ? `socket ${PORT}`
+            : `http://localhost:${PORT}`;
+        console.log(`--- Server Maleiwa iniciado en ${addr} ---`);
+    }).on('error', (err) => {
+        console.error('Error al iniciar servidor:', err.message);
+        process.exit(1);
+    });
+};
+
+// Exportar para Passenger (modo alternativo de arranque)
+module.exports = app;
+
+startServer();
