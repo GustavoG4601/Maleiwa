@@ -4,74 +4,21 @@
     "desc": "",
     "products": [
       {
-        "id": 2,
+        "id": 1772727584517,
         "name": "Maleiwa 22",
         "price": "75.000",
         "oldPrice": "",
-        "image": "/store/uploads/1772217949949-gp8wvk.webp",
-        "color": "Blanco",
-        "material": "",
-        "description": "",
-        "specs": [],
-        "sizes": [
-          "S",
-          "M"
-        ],
-        "colors": [
-          "Blanco"
-        ],
+        "image": "/store/uploads/1772727592471-l26ej9.jpg",
         "images": [
-          "/store/uploads/1772217949949-gp8wvk.webp",
-          "/store/uploads/1772217949951-zm135s.webp"
-        ]
-      },
-      {
-        "id": 3,
-        "name": "avaerde verde ",
-        "price": "75.000",
-        "oldPrice": "",
-        "image": "/store/uploads/1772045416689-08253b.webp",
-        "images": [
-          "/store/uploads/1772045416689-08253b.webp",
-          "/store/uploads/1772045416690-khq4k4.webp",
-          "/store/uploads/1772045416690-ig3e51.webp"
-        ],
-        "color": "",
-        "material": "",
-        "description": "",
-        "specs": [],
-        "sizes": [
-          "X",
-          "M",
-          "L"
-        ],
-        "colors": [
-          "Rojo",
-          "Azul",
-          "Verde"
-        ]
-      },
-      {
-        "id": 1772725112192,
-        "name": "Blusa Lino Natural 22",
-        "price": "75.000",
-        "oldPrice": "",
-        "image": "/store/uploads/1772725112190-hehgrk.jpg",
-        "images": [
-          "/store/uploads/1772725112190-hehgrk.jpg"
+          "/store/uploads/1772727592471-l26ej9.jpg"
         ],
         "color": "Blanco",
-        "material": "",
+        "material": "Tela Qatar ",
         "description": "",
-        "specs": [],
-        "sizes": [
-          "XS",
-          " X",
-          " M"
-        ],
-        "colors": [
-          "Blanco"
-        ]
+        "specs": "",
+        "sizes": "XS, X, M",
+        "colors": "Blanco ",
+        "collection": "2026"
       }
     ]
   }

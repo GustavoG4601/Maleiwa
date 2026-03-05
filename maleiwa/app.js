@@ -202,9 +202,19 @@ app.put(['/api/products/:coll/:id', '*/api/products/:coll/:id'], auth, upload.ar
     if (idx === -1) return res.status(404).json({ ok: false });
 
     const existing = data[coll].products[idx];
-    const images = req.files?.length ? req.files.map(f => `/store/uploads/${f.filename}`) : (req.body.images ? (Array.isArray(req.body.images) ? req.body.images : [req.body.images]) : existing.images);
+    const body = req.body || {};
+    const images = req.files?.length ? req.files.map(f => `/store/uploads/${f.filename}`) : (body.images ? (Array.isArray(body.images) ? body.images : [body.images]) : existing.images);
 
-    data[coll].products[idx] = { ...existing, ...req.body, images, image: images[0] || '', id: Number(id) };
+    data[coll].products[idx] = {
+        ...existing,
+        ...body,
+        images,
+        image: images[0] || '',
+        id: Number(id),
+        specs: body.specs ? (Array.isArray(body.specs) ? body.specs : String(body.specs).split('\n').map(s => s.trim()).filter(Boolean)) : existing.specs,
+        sizes: body.sizes ? (Array.isArray(body.sizes) ? body.sizes : String(body.sizes).split(',').map(s => s.trim()).filter(Boolean)) : existing.sizes,
+        colors: body.colors ? (Array.isArray(body.colors) ? body.colors : String(body.colors).split(',').map(s => s.trim()).filter(Boolean)) : existing.colors
+    };
     if (safeWrite(FILES.products, data)) res.json({ ok: true });
     else res.status(500).json({ ok: false });
 });

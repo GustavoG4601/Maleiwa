@@ -584,7 +584,7 @@
           <div class="mb-6">
             <p class="text-lg font-semibold mb-3">Talla <span class="text-red-500">*</span></p>
             <div id="product-sizes" class="flex gap-2 flex-wrap text-left">
-              ${(product.sizes || ['Única']).map(sz => `<button class="min-w-[3rem] h-12 px-3 border-2 border-slate-300 rounded-lg hover:border-primary transition-colors font-semibold" onclick="selectSize(this)">${sz}</button>`).join('')}
+              ${(Array.isArray(product.sizes) ? product.sizes : (typeof product.sizes === 'string' ? product.sizes.split(',').filter(Boolean) : ['Única'])).map(sz => `<button class="min-w-[3rem] h-12 px-3 border-2 border-slate-300 rounded-lg hover:border-primary transition-colors font-semibold" onclick="selectSize(this)">${sz.trim()}</button>`).join('')}
             </div>
           </div>
 
@@ -592,9 +592,9 @@
           <div class="mb-8">
             <p class="text-lg font-semibold mb-3">Colores Disponibles <span class="text-red-500">*</span></p>
             <div id="product-colors" class="flex gap-3 text-left">
-              ${(product.colors && product.colors.length ? product.colors : [product.color || 'Estándar']).map(c => `
-                <button class="w-10 h-10 rounded-full border-4 border-slate-300 hover:border-primary transition-colors flex items-center justify-center overflow-hidden" onclick="selectColor(this, '${c}')" title="${c}">
-                  <div class="w-full h-full shadow-inner" style="background-color: ${getColorHex(c)}"></div>
+              ${(Array.isArray(product.colors) ? product.colors : (product.color ? [product.color] : ['Estándar'])).map(c => `
+                <button class="w-10 h-10 rounded-full border-4 border-slate-300 hover:border-primary transition-colors flex items-center justify-center overflow-hidden" onclick="selectColor(this, '${c.trim()}')" title="${c.trim()}">
+                  <div class="w-full h-full shadow-inner" style="background-color: ${getColorHex(c.trim())}"></div>
                 </button>
               `).join('')}
             </div>
@@ -643,12 +643,16 @@
       if (typeof val === 'number') return val;
       let s = String(val).replace(/[^0-9,.]/g, '');
       if (s.includes(',') && s.includes('.')) return parseFloat(s.replace(/\./g, '').replace(',', '.'));
-      if (s.includes(',')) return parseFloat(s.replace(',', '.'));
+      if (s.includes(',')) {
+        const parts = s.split(',');
+        if (parts.length > 2 || parts[parts.length - 1].length === 3) return parseFloat(s.replace(/,/g, ''));
+        return parseFloat(s.replace(',', '.'));
+      }
       if (s.includes('.')) {
         const parts = s.split('.');
         if (parts.length > 2 || parts[parts.length - 1].length === 3) return parseFloat(s.replace(/\./g, ''));
       }
-      return parseFloat(s);
+      return parseFloat(s) || 0;
     };
 
     function addToCart() {
